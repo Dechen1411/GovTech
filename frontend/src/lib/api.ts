@@ -18,6 +18,7 @@ export type PropertyRecord = {
   tokenId: string;
   title: string;
   location: string;
+  threeWordLocation?: string;
   propertyType: string;
   price: string;
   imageUrl?: string;

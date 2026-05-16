@@ -210,6 +210,7 @@ const Admin = () => {
                         <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">{activeQueueItem.propertyType}</div>
                         <h3 className="mt-2 font-serif text-xl font-bold">{activeQueueItem.title}</h3>
                         <div className="mt-1 text-sm text-muted-foreground">{activeQueueItem.location}</div>
+                        {activeQueueItem.threeWordLocation && <div className="mt-1 text-xs font-semibold text-gold">///{activeQueueItem.threeWordLocation}</div>}
                       </div>
                       <div className="rounded-sm border border-gold/30 bg-gold/10 px-3 py-1 text-sm font-semibold text-gold">
                         {activeQueueItem.requestedListingShares?.toLocaleString("en-IN") || "10,000"} shares requested
@@ -223,6 +224,7 @@ const Admin = () => {
                         </div>
                       )}
                       <Detail label="Owner wallet" value={activeQueueItem.ownerWallet} />
+                      {activeQueueItem.threeWordLocation && <Detail label="3-word location" value={`///${activeQueueItem.threeWordLocation}`} />}
                       <Detail label="Document hash" value={activeQueueItem.docHash} />
                       <Detail label="Encrypted storage" value={activeQueueItem.docStorageRef} />
                       {activeQueueItem.docGatewayUrl && <Detail label="Gateway URL" value={activeQueueItem.docGatewayUrl} />}
@@ -334,6 +336,7 @@ const Admin = () => {
                         <span className="rounded-sm border border-gold/30 bg-gold/10 px-2 py-1 text-xs font-semibold text-gold">{property.status}</span>
                       </div>
                       <div className="mt-1 text-sm text-muted-foreground">{property.location}</div>
+                      {property.threeWordLocation && <div className="mt-1 text-xs font-semibold text-gold">///{property.threeWordLocation}</div>}
                       <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
                         <span>Token {property.tokenId || "pending"}</span>
                         <span>{property.totalSupply?.toLocaleString("en-IN") || "10,000"} shares</span>

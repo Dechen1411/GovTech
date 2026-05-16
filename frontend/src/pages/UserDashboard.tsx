@@ -27,6 +27,7 @@ const propertyImages = [property1, property2, property3, property4, property5, p
 const emptyDocumentForm = {
   title: "",
   location: "",
+  threeWordLocation: "",
   propertyType: "Residential",
   pricePerShare: "500",
   requestedListingShares: "2500",
@@ -384,6 +385,7 @@ const UserDashboard = () => {
                           <MapPin size={14} className="text-gold" />
                           {property?.location || "Verified property"}
                         </div>
+                        {property?.threeWordLocation && <div className="mt-1 text-xs font-semibold text-gold">///{property.threeWordLocation}</div>}
                       </div>
                     </div>
 
@@ -570,6 +572,12 @@ const UserDashboard = () => {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Title" value={documentForm.title} onChange={(value) => setDocumentForm((current) => ({ ...current, title: value }))} />
                     <Field label="Location" value={documentForm.location} onChange={(value) => setDocumentForm((current) => ({ ...current, location: value }))} />
+                    <Field
+                      label="Precise 3-word location"
+                      value={documentForm.threeWordLocation}
+                      placeholder="river.market.gold"
+                      onChange={(value) => setDocumentForm((current) => ({ ...current, threeWordLocation: value }))}
+                    />
                     <Field label="Property type" value={documentForm.propertyType} onChange={(value) => setDocumentForm((current) => ({ ...current, propertyType: value }))} />
                     <Field label="Price per share" value={documentForm.pricePerShare} onChange={(value) => setDocumentForm((current) => ({ ...current, pricePerShare: value }))} />
                     <Field label="Initial shares to list" value={documentForm.requestedListingShares} onChange={(value) => setDocumentForm((current) => ({ ...current, requestedListingShares: value }))} />
@@ -743,12 +751,25 @@ const Metric = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const Field = ({ label, value, type = "text", onChange }: { label: string; value: string; type?: string; onChange: (value: string) => void }) => (
+const Field = ({
+  label,
+  value,
+  type = "text",
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  type?: string;
+  placeholder?: string;
+  onChange: (value: string) => void;
+}) => (
   <label className="block">
     <span className="mb-2 block text-sm font-medium text-muted-foreground">{label}</span>
     <input
       type={type}
       value={value}
+      placeholder={placeholder}
       onChange={(event) => onChange(event.target.value)}
       className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-gold/60"
     />

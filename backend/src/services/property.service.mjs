@@ -37,6 +37,7 @@ export const registerProperty = async (db, body = {}) => {
     tokenId,
     title: String(body.title).trim(),
     location: String(body.location).trim(),
+    threeWordLocation: String(body.threeWordLocation || "").trim(),
     propertyType: body.propertyType || "Residential",
     price: String(body.price || "Nu. 0"),
     ownerWallet,

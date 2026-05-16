@@ -30,6 +30,7 @@ export const submit = async ({ db, req, body, res }) => {
     tokenId: "",
     title: String(body.title).trim(),
     location: String(body.location).trim(),
+    threeWordLocation: String(body.threeWordLocation || "").trim(),
     propertyType: body.propertyType || "Residential",
     price: body.price || `Nu. ${Number(body.pricePerShare || 0) * SHARES_PER_PROPERTY}`,
     ownerWallet: normalizeWallet(user.walletAddress),

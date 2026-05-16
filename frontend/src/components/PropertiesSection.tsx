@@ -21,6 +21,7 @@ type CardProperty = {
   title: string;
   price: string;
   location: string;
+  threeWordLocation?: string;
   verification: string;
   documents: string;
   shares: string;
@@ -34,6 +35,7 @@ const mapListing = (listing: ListingRecord, index: number): CardProperty => ({
   title: listing.property?.title || `Property token ${listing.tokenId}`,
   price: `${formatNu(listing.pricePerShare)} / share`,
   location: listing.property?.location || "Thimphu, Bhutan",
+  threeWordLocation: listing.property?.threeWordLocation,
   verification: `${listing.listingType} listing`,
   documents: `Document hash ${listing.property?.docHash?.slice(0, 18) || "0x"}...`,
   shares: `${listing.sharesForSale.toLocaleString("en-IN")} shares available (${listing.ownershipPercentForSale}%)`,
@@ -47,6 +49,7 @@ const mapListing = (listing: ListingRecord, index: number): CardProperty => ({
     listing.sellerWallet,
     listing.property?.title,
     listing.property?.location,
+    listing.property?.threeWordLocation,
     listing.property?.propertyType,
     listing.property?.docHash,
     listing.property?.status,
@@ -164,6 +167,7 @@ const PropertiesSection = () => {
                   <MapPin size={14} className="text-gold" />
                   {p.location}
                 </div>
+                {p.threeWordLocation && <div className="mb-4 text-xs font-semibold text-gold">///{p.threeWordLocation}</div>}
                 <div className="mb-4 space-y-2 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <FileCheck size={13} className="text-gold" />
