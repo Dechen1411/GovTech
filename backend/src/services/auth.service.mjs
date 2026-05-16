@@ -1,7 +1,9 @@
 import { NDI_API_BASE, NDI_AUTH_BASE, NDI_CLIENT_ID, NDI_CLIENT_SECRET, NDI_FOUNDATIONAL_SCHEMA, USE_NDI } from "../config/constants.mjs";
 import { httpError } from "../utils/errors.mjs";
-import { normalizeRole, now, randomSessionToken } from "../utils/values.mjs";
+import { isAdminNdiIdentity, normalizeRole, now, randomSessionToken } from "../utils/values.mjs";
 import { audit } from "./audit.service.mjs";
+import { ensurePrivyWalletForNdiHolder } from "./privy.service.mjs";
+import { verifyPlatformWallet } from "./wallet.service.mjs";
 
 let ndiToken = "";
 let ndiTokenExpiresAt = 0;
@@ -72,11 +74,12 @@ export const requireAdmin = (db, req, body = {}) => {
   return user;
 };
 
-export const createNdiProofRequest = async (role) => {
+export const createNdiProofRequest = async (role, intent = "user") => {
   const normalizedRole = normalizeRole(role);
+  const isAdminIntent = intent === "admin";
   const token = await fetchNdiToken();
   const payload = {
-    proofName: "Smart Property Platform Login",
+    proofName: isAdminIntent ? "Smart Property Platform Officer Login" : "Smart Property Platform Login",
     proofAttributes: ["Full Name", "ID Number"].map((name) => ({
       name,
       restrictions: [{ schema_name: NDI_FOUNDATIONAL_SCHEMA }],
@@ -108,11 +111,35 @@ export const createNdiProofRequest = async (role) => {
     proofRequestURL: data.proofRequestURL,
     deepLinkURL: data.deepLinkURL,
     role: normalizedRole,
+    intent: isAdminIntent ? "admin" : "user",
     expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
   };
 };
 
-export const createOrUpdateUserFromProof = (db, pending, body = {}) => {
+const ensurePrivyPlatformWallet = async (db, user, { holderDid, idNumberDisplay }) => {
+  if (user.walletAddress) {
+    return null;
+  }
+
+  const wallet = await ensurePrivyWalletForNdiHolder({ holderDid, idNumberDisplay });
+  user.walletProvider = "privy";
+  user.privyWalletId = wallet.walletId;
+  user.privyWalletExternalId = wallet.externalId;
+  user.privyWalletCreatedAt = wallet.created ? now() : user.privyWalletCreatedAt || now();
+
+  await verifyPlatformWallet(db, user, wallet.walletAddress, {
+    actor: wallet.created ? "PRIVY_WALLET_CREATED" : "PRIVY_WALLET_REUSED",
+    metadata: {
+      provider: "privy",
+      privyWalletId: wallet.walletId,
+      privyExternalId: wallet.externalId,
+    },
+  });
+
+  return wallet;
+};
+
+export const createOrUpdateUserFromProof = async (db, pending, body = {}) => {
   const requestedRole = "user";
   const holderDid = body.holderDid || `did:key:demo-${requestedRole}-${pending.threadId.slice(0, 8)}`;
   const idNumberDisplay = body.idNumberDisplay || "NDI-VERIFIED";
@@ -128,14 +155,40 @@ export const createOrUpdateUserFromProof = (db, pending, body = {}) => {
 
   user.idNumberDisplay = idNumberDisplay;
   user.fullName = body.fullName || user.fullName || "";
-  const role = requestedRole;
-  user.role = role;
   user.sessionToken = sessionToken;
   user.ndiProofThreadId = pending.threadId;
   user.ndiVerifiedAt = now();
 
+  await ensurePrivyPlatformWallet(db, user, { holderDid, idNumberDisplay });
+
+  const adminRequested = pending.intent === "admin";
+  const adminAllowed =
+    adminRequested &&
+    isAdminNdiIdentity({
+      holderDid,
+      idNumberDisplay,
+      walletAddress: user.walletAddress,
+    });
+  const role = adminAllowed ? "admin" : requestedRole;
+  user.role = role;
+
   if (!existing) {
     db.users.push(user);
+  }
+
+  if (adminRequested && !adminAllowed) {
+    pending.status = "FAILED";
+    pending.failedAt = now();
+    pending.holderDid = holderDid;
+    pending.idNumberDisplay = idNumberDisplay;
+    pending.walletAddress = user.walletAddress;
+    pending.walletProvider = user.walletProvider || "privy";
+    pending.error = "This NDI identity is not approved for admin console access";
+    audit(db, holderDid, "ADMIN_NDI_ACCESS_DENIED", pending.threadId, {
+      idNumberDisplay,
+      walletAddress: user.walletAddress,
+    });
+    throw httpError(403, pending.error);
   }
 
   pending.status = "VERIFIED";
@@ -143,12 +196,19 @@ export const createOrUpdateUserFromProof = (db, pending, body = {}) => {
   pending.holderDid = holderDid;
   pending.idNumberDisplay = idNumberDisplay;
   pending.completedAt = now();
+  pending.walletAddress = user.walletAddress;
+  pending.walletProvider = user.walletProvider || "privy";
+  delete pending.error;
 
-  audit(db, holderDid, "NDI_PROOF_VALIDATED", pending.threadId, { role, idNumberDisplay });
+  audit(db, holderDid, adminAllowed ? "ADMIN_NDI_ACCESS_GRANTED" : "NDI_PROOF_VALIDATED", pending.threadId, {
+    role,
+    idNumberDisplay,
+    walletProvider: user.walletProvider || "privy",
+  });
   return user;
 };
 
-export const createOrUpdateUserFromNdiPayload = (db, threadId, payload = {}) => {
+export const createOrUpdateUserFromNdiPayload = async (db, threadId, payload = {}) => {
   const pending = db.pendingSessions.find((session) => session.threadId === threadId);
   if (!pending) {
     return null;
@@ -157,11 +217,26 @@ export const createOrUpdateUserFromNdiPayload = (db, threadId, payload = {}) => 
     return getUserBySession(db, pending.sessionToken) || null;
   }
 
-  const inner = payload?.data?.type ? payload.data : payload;
-  if (inner.verification_result !== "ProofValidated") {
+  const payloadData = payload?.data && typeof payload.data === "object" ? payload.data : null;
+  const inner =
+    payloadData &&
+    ("verification_result" in payloadData ||
+      "verificationResult" in payloadData ||
+      "requested_presentation" in payloadData ||
+      "holder_did" in payloadData)
+      ? payloadData
+      : payload;
+  const verificationResult = inner.verification_result || inner.verificationResult || "";
+
+  if (!verificationResult) {
+    return null;
+  }
+
+  if (verificationResult !== "ProofValidated") {
     pending.status = "FAILED";
     pending.failedAt = now();
-    audit(db, "ndi", "NDI_PROOF_FAILED", threadId, { verificationResult: inner.verification_result || "unknown" });
+    pending.error = "NDI Wallet did not validate this login request. Please try again.";
+    audit(db, "ndi", "NDI_PROOF_FAILED", threadId, { verificationResult });
     return null;
   }
 
@@ -170,14 +245,23 @@ export const createOrUpdateUserFromNdiPayload = (db, threadId, payload = {}) => 
   if (!holderDid) {
     pending.status = "FAILED";
     pending.failedAt = now();
+    pending.error = "NDI proof was validated, but the wallet did not include a holder identity.";
     audit(db, "ndi", "NDI_PROOF_FAILED", threadId, { reason: "Missing holder_did" });
     return null;
   }
 
-  return createOrUpdateUserFromProof(db, pending, {
-    holderDid,
-    idNumberDisplay: pickRevealedValue(revealed, "ID Number") || "NDI-VERIFIED",
-    fullName: pickRevealedValue(revealed, "Full Name"),
-    role: pending.role,
-  });
+  try {
+    return await createOrUpdateUserFromProof(db, pending, {
+      holderDid,
+      idNumberDisplay: pickRevealedValue(revealed, "ID Number") || "NDI-VERIFIED",
+      fullName: pickRevealedValue(revealed, "Full Name"),
+      role: pending.role,
+    });
+  } catch (error) {
+    pending.status = "FAILED";
+    pending.failedAt = now();
+    pending.error = error instanceof Error ? error.message : "Unable to complete NDI authorization";
+    audit(db, holderDid, "NDI_AUTHORIZATION_FAILED", threadId, { reason: pending.error });
+    return null;
+  }
 };

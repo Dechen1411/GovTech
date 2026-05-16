@@ -7,6 +7,7 @@ import {
   USE_MONGODB,
   USE_NDI,
   USE_NDI_NATS,
+  USE_PRIVY,
 } from "./config/constants.mjs";
 import { isHttpError } from "./utils/errors.mjs";
 import { notFound, ok, parseBody, send } from "./utils/http.mjs";
@@ -30,6 +31,7 @@ export const handleApi = async (req, res) => {
       chain: USE_CHAIN ? "configured" : "not-configured",
       ndi: USE_NDI ? "configured" : "not-configured",
       ndiTransport: USE_NDI_NATS ? "nats" : "none",
+      walletProvider: USE_PRIVY ? "privy" : "privy-missing-config",
     });
   }
 

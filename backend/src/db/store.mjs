@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { DB_FILE, DOCS_DIR, MONGODB_DB_NAME, MONGODB_URI, USE_MONGODB } from "../config/constants.mjs";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { DB_FILE, DOCS_DIR, MONGODB_DB_NAME, MONGODB_FALLBACK_TO_LOCAL, MONGODB_URI, USE_MONGODB } from "../config/constants.mjs";
 import { baseDb } from "./seed.mjs";
 import { isWallet, normalizeRole, normalizeWallet, seededVerifiedWallets } from "../utils/values.mjs";
 
@@ -22,6 +22,9 @@ const collectionNames = {
 
 let clientPromise = null;
 let mongoReadyPromise = null;
+const parseBoolean = (value = "") => ["1", "true", "yes", "on"].includes(String(value).trim().toLowerCase());
+const mongoTlsAllowInvalidHostnames = parseBoolean(process.env.MONGODB_TLS_ALLOW_INVALID_HOSTNAMES || "");
+let mongoFallbackActive = MONGODB_FALLBACK_TO_LOCAL;
 
 const wait = (ms) => new Promise((resolve) => {
   setTimeout(resolve, ms);
@@ -53,7 +56,8 @@ const mongoClient = async () => {
       maxPoolSize: 10,
       retryReads: true,
       retryWrites: true,
-      serverSelectionTimeoutMS: 15_000,
+      serverSelectionTimeoutMS: 5_000,
+      tlsAllowInvalidHostnames: mongoTlsAllowInvalidHostnames,
     });
     clientPromise = client.connect().catch((error) => {
       clientPromise = null;
@@ -112,10 +116,26 @@ const objectToVerifiedWallets = (verifiedWallets = {}) =>
     verified: Boolean(verified),
   }));
 
+const dedupeByField = (docs = [], field) => {
+  const byField = new Map();
+  const withoutField = [];
+
+  for (const doc of docs) {
+    const value = doc?.[field];
+    if (value === undefined || value === null || value === "") {
+      withoutField.push(doc);
+      continue;
+    }
+    byField.set(String(value), doc);
+  }
+
+  return [...byField.values(), ...withoutField];
+};
+
 const replaceCollection = async (database, collectionName, docs, options = {}) => {
   const collection = database.collection(collectionName);
   await collection.deleteMany({});
-  const safeDocs = docs.map((doc) => stripMongoId(doc, options));
+  const safeDocs = dedupeByField(docs.map((doc) => stripMongoId(doc, options)), "_id");
   if (safeDocs.length) {
     await collection.insertMany(safeDocs, { ordered: false });
   }
@@ -155,6 +175,7 @@ const initializeMongoDb = async () => {
   const database = await mongoDb();
   await Promise.all([
     database.collection(collectionNames.users).createIndex({ holderDid: 1 }),
+    database.collection(collectionNames.users).createIndex({ privyWalletExternalId: 1 }),
     database.collection(collectionNames.users).createIndex({ sessionToken: 1 }),
     database.collection(collectionNames.properties).createIndex({ tokenId: 1 }),
     database.collection(collectionNames.listings).createIndex({ tokenId: 1, status: 1 }),
@@ -186,7 +207,7 @@ const normalizeDb = (db) => {
     users: db.users ?? [],
     pendingSessions: db.pendingSessions ?? [],
     walletChallenges: db.walletChallenges ?? [],
-    properties: db.properties ?? [],
+    properties: dedupeByField(db.properties ?? [], "_id"),
     listings: db.listings ?? [],
     verifiedWallets: hydrateVerifiedWallets(db),
     balances: db.balances ?? {},
@@ -209,18 +230,73 @@ const normalizeDb = (db) => {
   return normalizedDb;
 };
 
+const localBackupPath = () => `${DB_FILE}.${new Date().toISOString().replace(/[:.]/g, "-")}.corrupt`;
+
+const writeLocalDb = async (db) => {
+  await mkdir(DOCS_DIR, { recursive: true });
+  const tempFile = `${DB_FILE}.${process.pid}.${Date.now()}.tmp`;
+  await writeFile(tempFile, JSON.stringify(db, null, 2));
+  await rename(tempFile, DB_FILE);
+};
+
+const resetLocalDb = async (reason, raw = "") => {
+  const backupFile = localBackupPath();
+  await mkdir(DOCS_DIR, { recursive: true });
+  await writeFile(backupFile, raw);
+
+  const freshDb = baseDb();
+  await writeLocalDb(freshDb);
+  console.warn(`Local JSON database was unreadable (${reason}); reset seed data at ${DB_FILE}. Backup saved to ${backupFile}`);
+  return freshDb;
+};
+
+const readLocalDb = async () => {
+  await ensureLocalDb();
+  const raw = await readFile(DB_FILE, "utf8");
+
+  if (!raw.trim()) {
+    return normalizeDb(await resetLocalDb("empty file", raw));
+  }
+
+  try {
+    return normalizeDb(JSON.parse(raw));
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "invalid JSON";
+    return normalizeDb(await resetLocalDb(reason, raw));
+  }
+};
+
 export const ensureDb = async () => {
   if (USE_MONGODB) {
-    await ensureMongoDb();
+    if (mongoFallbackActive && MONGODB_FALLBACK_TO_LOCAL) {
+      await ensureLocalDb();
+      return;
+    }
+
+    try {
+      await ensureMongoDb();
+      mongoFallbackActive = false;
+    } catch (error) {
+      if (!MONGODB_FALLBACK_TO_LOCAL) {
+        throw error;
+      }
+      mongoFallbackActive = true;
+      console.warn(`MongoDB unavailable, using local JSON fallback: ${error instanceof Error ? error.message : "Unknown MongoDB error"}`);
+      await ensureLocalDb();
+    }
     return;
   }
 
+  await ensureLocalDb();
+};
+
+const ensureLocalDb = async () => {
   await mkdir(DOCS_DIR, { recursive: true });
 
   try {
     await readFile(DB_FILE, "utf8");
   } catch {
-    await writeFile(DB_FILE, JSON.stringify(baseDb(), null, 2));
+    await writeLocalDb(baseDb());
   }
 };
 
@@ -252,8 +328,19 @@ export const hydrateVerifiedWallets = (db) => {
 export const readDb = async () => {
   await ensureDb();
 
-  if (USE_MONGODB) {
-    const database = await mongoDb();
+  if (USE_MONGODB && !mongoFallbackActive) {
+    let database;
+    try {
+      database = await mongoDb();
+    } catch (error) {
+      if (!MONGODB_FALLBACK_TO_LOCAL) {
+        throw error;
+      }
+      mongoFallbackActive = true;
+      console.warn(`MongoDB read unavailable, using local JSON fallback: ${error instanceof Error ? error.message : "Unknown MongoDB error"}`);
+      return readLocalDb();
+    }
+
     const [
       meta,
       users,
@@ -302,17 +389,23 @@ export const readDb = async () => {
     });
   }
 
-  const raw = await readFile(DB_FILE, "utf8");
-  const db = JSON.parse(raw);
-  return normalizeDb(db);
+  return readLocalDb();
 };
 
 export const writeDb = async (db) => {
-  if (USE_MONGODB) {
-    await writeMongoDb(db);
-    return;
+  if (USE_MONGODB && !mongoFallbackActive) {
+    try {
+      await writeMongoDb(db);
+      return;
+    } catch (error) {
+      if (!MONGODB_FALLBACK_TO_LOCAL) {
+        throw error;
+      }
+      mongoFallbackActive = true;
+      console.warn(`MongoDB write unavailable, using local JSON fallback: ${error instanceof Error ? error.message : "Unknown MongoDB error"}`);
+    }
   }
 
-  await mkdir(DOCS_DIR, { recursive: true });
-  await writeFile(DB_FILE, JSON.stringify(db, null, 2));
+  await ensureLocalDb();
+  await writeLocalDb(db);
 };

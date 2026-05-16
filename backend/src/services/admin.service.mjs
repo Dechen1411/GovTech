@@ -10,6 +10,8 @@ import { makeId, normalizeWallet, now, randomHex } from "../utils/values.mjs";
 
 export const reviewQueue = (db) => db.properties.filter((property) => property.status === "PENDING");
 
+const adminActor = (admin) => admin.adminWalletAddress || admin.walletAddress || admin.holderDid;
+
 const syncNextTokenId = (db, tokenId) => {
   const numericTokenId = Number(tokenId);
   if (Number.isInteger(numericTokenId)) {
@@ -62,7 +64,7 @@ export const approveProperty = async (db, admin, propertyId, body = {}) => {
     });
   }
 
-  audit(db, admin.walletAddress || admin.holderDid, "PROPERTY_APPROVED", property._id, {
+  audit(db, adminActor(admin), "PROPERTY_APPROVED", property._id, {
     tokenId,
     notes: body.notes || "",
     chainTxHash: chainMint?.txHash || null,
@@ -79,7 +81,7 @@ export const rejectProperty = (db, admin, propertyId, body = {}) => {
   property.status = "REJECTED";
   property.rejectionNotes = body.notes || "Rejected by admin review";
   property.updatedAt = now();
-  audit(db, admin.walletAddress || admin.holderDid, "PROPERTY_REJECTED", property._id, { notes: property.rejectionNotes });
+  audit(db, adminActor(admin), "PROPERTY_REJECTED", property._id, { notes: property.rejectionNotes });
 
   return property;
 };
@@ -90,6 +92,6 @@ export const suspendWallet = (db, admin, wallet, body = {}) => {
   users.forEach((user) => {
     user.suspended = true;
   });
-  audit(db, admin.walletAddress || admin.holderDid, "WALLET_SUSPENDED", normalizedWallet, { reason: body.reason || "" });
+  audit(db, adminActor(admin), "WALLET_SUSPENDED", normalizedWallet, { reason: body.reason || "" });
   return { wallet: normalizedWallet, users };
 };

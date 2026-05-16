@@ -8,6 +8,11 @@ export type SessionUser = {
   walletAddress: string;
   wallet: string;
   walletVerified?: boolean;
+  walletProvider?: string;
+  privyWalletId?: string;
+  walletVerifiedAt?: string;
+  adminWalletAddress?: string;
+  adminWalletVerifiedAt?: string;
   displayName: string;
   ndiProofThreadId?: string;
   ndiVerifiedAt?: string;

@@ -4,7 +4,9 @@ import { serializeLease } from "../models/lease.model.mjs";
 import { serializeProperty } from "../models/property.model.mjs";
 import { requireUser } from "../services/auth.service.mjs";
 import { createOrder, portfolioForWallet } from "../services/order.service.mjs";
+import { httpError } from "../utils/errors.mjs";
 import { created, ok } from "../utils/http.mjs";
+import { normalizeWallet } from "../utils/values.mjs";
 
 export const create = async ({ db, req, body, res }) => {
   const user = requireUser(db, req, body);
@@ -13,7 +15,12 @@ export const create = async ({ db, req, body, res }) => {
   return created(res, { order, listing: serializeListing(db, listing), txHash });
 };
 
-export const portfolio = ({ db, segments, res }) => {
+export const portfolio = ({ db, req, body, segments, res }) => {
+  const user = requireUser(db, req, body);
+  if (user.role !== "admin" && normalizeWallet(user.walletAddress) !== normalizeWallet(segments[2])) {
+    throw httpError(403, "You can only view your own portfolio");
+  }
+
   const portfolioData = portfolioForWallet(db, segments[2]);
   return ok(res, {
     wallet: portfolioData.wallet,

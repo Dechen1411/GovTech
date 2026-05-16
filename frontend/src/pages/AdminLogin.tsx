@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, Clock, FileUp, Link2, QrCode, Shield, ShoppingCart, Wallet } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, Clock, Landmark, Link2, LockKeyhole, QrCode, ShieldCheck, UserCheck } from "lucide-react";
 import { apiRequest, shortWallet } from "@/lib/api";
 import { clearSessionUser, setSessionUser, type SessionUser, type UserRole } from "@/lib/auth";
 import { isInactiveNdiError, isInactiveNdiProof } from "@/lib/ndi";
@@ -10,16 +10,16 @@ type NDIProof = {
   proofRequestURL: string;
   deepLinkURL: string;
   role: UserRole;
+  intent?: "user" | "admin";
   status: "PENDING" | "VERIFIED" | "EXPIRED" | "FAILED";
   expiresAt: string;
   error?: string;
   user?: SessionUser | null;
 };
 
-const Login = () => {
+const AdminLogin = () => {
   const navigate = useNavigate();
   const [proof, setProof] = useState<NDIProof | null>(null);
-  const [issuedUser, setIssuedUser] = useState<SessionUser | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -48,16 +48,19 @@ const Login = () => {
         setProof(data);
 
         if (data.status === "VERIFIED" && data.user) {
-          const userSession = { ...data.user, role: "user" as UserRole };
-          setIssuedUser(userSession);
-          setSessionUser(userSession);
-          setMessage(`Platform wallet ready: ${shortWallet(userSession.walletAddress)}.`);
-          window.setTimeout(() => navigate("/user-dashboard"), 700);
+          if (data.user.role !== "admin") {
+            setMessage("This NDI identity is not approved for admin console access.");
+            return;
+          }
+
+          setSessionUser(data.user);
+          setMessage("Officer verified. Opening admin console...");
+          navigate("/admin-dashboard");
           return;
         }
 
         if (data.status === "FAILED") {
-          setMessage(data.error || "NDI login could not be completed.");
+          setMessage(data.error || "This NDI identity is not approved for admin console access.");
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "";
@@ -77,75 +80,69 @@ const Login = () => {
   const beginProof = async () => {
     setBusy(true);
     setMessage("");
-    setIssuedUser(null);
     clearSessionUser();
 
     try {
       const data = await apiRequest<NDIProof>("/api/auth/ndi/start", {
         method: "POST",
-        body: JSON.stringify({ role: "user" }),
+        body: JSON.stringify({ intent: "admin" }),
       });
       setProof(data);
       setMessage("Login request created. Approve it in Bhutan NDI Wallet.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to start NDI login.");
+      setMessage(error instanceof Error ? error.message : "Unable to start admin NDI login.");
     } finally {
       setBusy(false);
     }
   };
 
+  const approvedUser = proof?.status === "VERIFIED" && proof.user?.role === "admin" ? proof.user : null;
+
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-primary text-white">
       <section className="container mx-auto flex min-h-screen items-center justify-center px-4 py-10">
-        <div className="grid w-full max-w-6xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="relative overflow-hidden rounded-[2rem] border border-primary bg-primary p-8 text-white shadow-lg shadow-primary/20">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,160,23,0.26),transparent_32%),linear-gradient(135deg,rgba(11,31,58,0.98),rgba(11,31,58,0.88))]" />
+        <div className="grid w-full max-w-6xl gap-8 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-primary p-8 text-white shadow-2xl shadow-black/20">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,160,23,0.24),transparent_32%),linear-gradient(135deg,rgba(11,31,58,0.98),rgba(11,31,58,0.90))]" />
             <div className="relative">
               <div className="inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-gold">
-                <Shield size={12} />
-                Bhutan NDI Access
+                <LockKeyhole size={12} />
+                Restricted Officer Access
               </div>
               <h1 className="mt-5 font-sans text-4xl font-bold uppercase leading-tight md:text-5xl">
-                Verify identity, receive your <span className="text-gold-gradient">platform wallet</span>
+                Admin NDI login and <span className="text-gold-gradient">officer authorization</span>
               </h1>
               <p className="mt-4 max-w-lg text-white/80">
-                Sign in with Bhutan NDI to access verified property listings, share purchases, document submission, and resale services.
+                Administrative actions require Bhutan NDI verification against a backend officer allowlist. No browser wallet signature is needed.
               </p>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                <InfoCard
-                  icon={ShoppingCart}
-                  title="Buy property shares"
-                  description="Browse full, partial, and secondary listings from one verified account."
-                />
-                <InfoCard
-                  icon={FileUp}
-                  title="Sell property shares"
-                  description="Submit property documents, list approved shares, and resell holdings."
-                />
+              <div className="mt-8 grid gap-4">
+                <AdminStep icon={Landmark} title="1. Login with NDI" description="Confirm the officer session with Bhutan NDI before any admin action." />
+                <AdminStep icon={UserCheck} title="2. Check officer allowlist" description="The backend authorizes approved NDI identities from environment configuration." />
+                <AdminStep icon={ShieldCheck} title="3. Audit every action" description="Approvals, rejections, wallet suspensions, and lease events are logged." />
               </div>
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-border border-t-4 border-t-gold bg-card/95 p-8 shadow-lg shadow-primary/10">
+          <div className="rounded-[2rem] border border-border border-t-4 border-t-gold bg-card/95 p-8 text-card-foreground shadow-lg shadow-black/10">
             <div className="flex items-center gap-3">
               <div className="rounded-xl bg-gold/10 p-3 text-gold">
-                {issuedUser ? <Wallet size={22} /> : <QrCode size={22} />}
+                {approvedUser ? <ShieldCheck size={22} /> : <QrCode size={22} />}
               </div>
               <div>
-                <h2 className="font-serif text-2xl font-bold">{issuedUser ? "Platform wallet issued" : "Login with NDI"}</h2>
+                <h2 className="font-serif text-2xl font-bold">{approvedUser ? "Officer authorized" : "Officer NDI login"}</h2>
                 <p className="text-sm text-muted-foreground">
-                  {issuedUser ? "Opening your marketplace workspace." : "Scan with Bhutan NDI Wallet and approve the login request."}
+                  {approvedUser ? "The backend approved this officer session." : "Scan with Bhutan NDI Wallet and approve the login request."}
                 </p>
               </div>
             </div>
 
             {!proof && (
               <div className="mt-8 rounded-2xl border border-border/80 bg-white p-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Marketplace access</div>
-                <div className="mt-2 font-serif text-3xl font-bold">One verified account</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Secure console access</div>
+                <div className="mt-2 font-serif text-3xl font-bold">Login before admin</div>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  A verified user account can purchase shares, submit property documents, lease usage rights, and resell owned shares.
+                  Start by proving identity through Bhutan NDI. The server checks the verified holder against the approved officer allowlist.
                 </p>
                 <button
                   type="button"
@@ -159,7 +156,7 @@ const Login = () => {
               </div>
             )}
 
-            {proof && proof.status === "PENDING" && !issuedUser && (
+            {proof && proof.status === "PENDING" && (
               <div className="mt-8 grid gap-6 md:grid-cols-[240px_1fr]">
                 <div className="rounded-2xl border border-border bg-background p-4">
                   {qrImage ? (
@@ -173,8 +170,8 @@ const Login = () => {
                     <Clock size={12} />
                     Waiting for NDI approval
                   </div>
-                  <p className="mt-4 break-all text-sm text-muted-foreground">Thread ID: {proof.threadId}</p>
-                  <p className="mt-3 text-sm text-muted-foreground">Once approved, the platform will create your secure wallet automatically.</p>
+                  <p className="mt-4 text-sm text-muted-foreground">The admin console opens automatically after officer authorization.</p>
+                  <p className="mt-3 break-all text-xs text-muted-foreground">Thread ID: {proof.threadId}</p>
                   <a
                     href={proof.deepLinkURL}
                     className="mt-5 inline-flex items-center gap-2 rounded-sm border border-gold/40 px-4 py-3 text-sm font-semibold uppercase tracking-widest text-gold hover:bg-gold/10"
@@ -186,19 +183,18 @@ const Login = () => {
               </div>
             )}
 
-            {issuedUser && (
+            {approvedUser && (
               <div className="mt-8 rounded-2xl border border-border/80 bg-white p-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">NDI verified</div>
-                <div className="mt-3 break-all text-sm text-muted-foreground">Holder DID: {issuedUser.holderDid}</div>
-                <div className="mt-1 text-sm text-muted-foreground">Display ID: {issuedUser.idNumberDisplay}</div>
-                <div className="mt-1 text-sm text-muted-foreground">Platform wallet: {shortWallet(issuedUser.walletAddress)}</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Authorized officer session</div>
+                <div className="mt-3 break-all text-sm text-muted-foreground">Holder DID: {approvedUser.holderDid}</div>
+                <div className="mt-1 text-sm text-muted-foreground">Platform wallet: {shortWallet(approvedUser.walletAddress)}</div>
               </div>
             )}
 
-            {proof?.status === "FAILED" && !issuedUser && !isInactiveNdiProof(proof) && (
+            {proof?.status === "FAILED" && !isInactiveNdiProof(proof) && (
               <div className="mt-8 rounded-2xl border border-border/80 bg-white p-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Login not completed</div>
-                <p className="mt-3 text-sm text-muted-foreground">{proof.error || "The NDI login could not be completed."}</p>
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Access not approved</div>
+                <p className="mt-3 text-sm text-muted-foreground">{proof.error || "This NDI identity is not approved for admin console access."}</p>
                 <button
                   type="button"
                   onClick={() => {
@@ -214,6 +210,10 @@ const Login = () => {
             )}
 
             {message && <p className="mt-5 rounded-2xl border border-border bg-secondary px-4 py-3 text-sm text-muted-foreground">{message}</p>}
+
+            <Link to="/" className="mt-6 inline-flex text-sm font-semibold text-muted-foreground hover:text-gold">
+              Return to public site
+            </Link>
           </div>
         </div>
       </section>
@@ -221,18 +221,18 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;
 
-const InfoCard = ({
+const AdminStep = ({
   icon: Icon,
   title,
   description,
 }: {
-  icon: typeof ShoppingCart;
+  icon: typeof Landmark;
   title: string;
   description: string;
 }) => (
-  <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-left text-white">
+  <div className="rounded-xl border border-white/15 bg-white/10 p-4 text-white">
     <Icon size={18} className="text-gold" />
     <div className="mt-3 font-semibold">{title}</div>
     <div className="mt-1 text-sm text-white/75">{description}</div>

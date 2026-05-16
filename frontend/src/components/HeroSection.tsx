@@ -5,42 +5,50 @@ const serviceCards = [
   {
     icon: FileCheck,
     title: "Submit property",
-    description: "Encrypted document review and approval queue",
+    description: "Encrypted documents enter official review before listing",
   },
   {
     icon: WalletCards,
-    title: "Buy shares",
-    description: "Full and fractional ownership listings",
+    title: "Buy verified shares",
+    description: "Full and fractional ownership through approved listings",
   },
   {
     icon: BadgeCheck,
-    title: "Resell holdings",
-    description: "Secondary market for verified shareholders",
+    title: "Lease or resell",
+    description: "Manage holdings, resale listings, and lease records",
   },
 ];
 
+const trustSignals = ["Bhutan NDI secured", "ERC-6909 share registry", "Encrypted document proof"];
+
 const HeroSection = () => {
   return (
-    <section id="home" className="relative min-h-screen overflow-hidden bg-primary pt-24">
+    <section id="home" className="relative min-h-[92vh] overflow-hidden bg-primary pt-24">
       <div className="absolute inset-0">
-        <img src={heroBg} alt="Verified property in Bhutan" width={1920} height={1080} className="h-full w-full object-cover" />
+        <img
+          src={heroBg}
+          alt="Smart Property Platform verified property services in Bhutan"
+          width={1920}
+          height={1080}
+          className="h-full w-full object-cover"
+        />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,31,58,0.96)_0%,rgba(11,31,58,0.84)_42%,rgba(11,31,58,0.40)_72%,rgba(11,31,58,0.22)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-primary to-transparent" />
       </div>
 
-      <div className="relative z-10 container mx-auto flex min-h-[calc(100vh-6rem)] flex-col justify-center px-4 pb-12 pt-10">
+      <div className="relative z-10 container mx-auto flex min-h-[calc(92vh-6rem)] flex-col justify-center px-4 pb-12 pt-10">
         <div className="max-w-3xl opacity-0 animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
           <div className="mb-6 inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gold backdrop-blur-sm">
             <Landmark size={14} />
-            NDI Verified Property Services
+            NDI Secured Property Services
           </div>
 
-          <h1 className="max-w-4xl font-sans text-4xl font-bold uppercase leading-[1.08] text-white drop-shadow-lg md:text-5xl lg:text-6xl">
-            The best place to find property services and information
+          <h1 className="max-w-4xl font-sans text-4xl font-bold uppercase leading-[1.05] text-white drop-shadow-lg md:text-5xl lg:text-6xl">
+            Smart Property Platform
           </h1>
 
-          <p className="mt-6 max-w-2xl text-base leading-7 text-white/85 drop-shadow md:text-lg">
-            Access verified real estate listings, fractional ownership, document review, and wallet-backed transfers from one trusted property platform.
+          <p className="mt-6 max-w-2xl text-base leading-7 text-white/90 drop-shadow md:text-lg">
+            Submit property documents, purchase verified ownership shares, and record leases through one secure marketplace backed by Bhutan NDI and blockchain proof.
           </p>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
@@ -57,6 +65,17 @@ const HeroSection = () => {
             >
               Sign in with NDI
             </a>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            {trustSignals.map((signal) => (
+              <span
+                key={signal}
+                className="rounded-sm border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white/80 backdrop-blur-sm"
+              >
+                {signal}
+              </span>
+            ))}
           </div>
         </div>
 

@@ -9,10 +9,10 @@ import { isWallet, makeId, normalizeWallet, now, randomHex } from "../utils/valu
 
 export const createOrder = (db, user, body = {}) => {
   if (!user.walletAddress || !isWallet(user.walletAddress)) {
-    throw httpError(400, "Link a wallet before purchasing shares");
+    throw httpError(400, "Complete NDI login so the platform can issue a wallet before purchasing shares");
   }
   if (!isVerifiedWallet(db, user.walletAddress)) {
-    throw httpError(400, "Your linked wallet must be NDI-verified before purchasing shares");
+    throw httpError(400, "Your platform wallet must be NDI-verified before purchasing shares");
   }
 
   const listing = findListing(db, body.listingId);

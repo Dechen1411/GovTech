@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { ADMIN_WALLET_ADDRESSES, roleSet, seedWallets, walletAddressRegex } from "../config/constants.mjs";
+import { ADMIN_DEMO_MODE, ADMIN_HOLDER_DIDS, ADMIN_ID_NUMBER_HASHES, ADMIN_WALLET_ADDRESSES, roleSet, seedWallets, walletAddressRegex } from "../config/constants.mjs";
 
 export const now = () => new Date().toISOString();
 export const asTokenId = (value) => String(value ?? "").trim();
@@ -8,6 +8,17 @@ export const normalizeRole = (role) => (role === "admin" ? "admin" : "user");
 export const isSupportedRole = (role) => roleSet.has(role);
 export const isWallet = (wallet) => walletAddressRegex.test(String(wallet ?? ""));
 export const isAdminWallet = (wallet) => ADMIN_WALLET_ADDRESSES.includes(normalizeWallet(wallet));
+export const sha256Digest = (value) => createHash("sha256").update(String(value ?? "").trim()).digest("hex");
+export const isAdminNdiIdentity = ({ holderDid = "", idNumberDisplay = "", walletAddress = "" } = {}) => {
+  if (ADMIN_DEMO_MODE) {
+    return true;
+  }
+
+  const holderMatch = ADMIN_HOLDER_DIDS.includes(String(holderDid).trim());
+  const idHashMatch = Boolean(idNumberDisplay) && ADMIN_ID_NUMBER_HASHES.includes(sha256Digest(idNumberDisplay));
+  const walletMatch = isAdminWallet(walletAddress);
+  return holderMatch || idHashMatch || walletMatch;
+};
 export const seededVerifiedWallets = () =>
   Object.fromEntries([...Object.values(seedWallets), ...ADMIN_WALLET_ADDRESSES].map((wallet) => [normalizeWallet(wallet), true]));
 export const sha256Hex = (value) => `0x${createHash("sha256").update(String(value)).digest("hex")}`;

@@ -6,7 +6,10 @@ import { approveProperty, rejectProperty, reviewQueue, suspendWallet } from "../
 import { requireAdmin } from "../services/auth.service.mjs";
 import { ok } from "../utils/http.mjs";
 
-export const queue = ({ db, res }) => ok(res, { queue: reviewQueue(db).map((property) => serializeProperty(db, property)) });
+export const queue = ({ db, req, body, res }) => {
+  requireAdmin(db, req, body);
+  return ok(res, { queue: reviewQueue(db).map((property) => serializeProperty(db, property)) });
+};
 
 export const approve = async ({ db, req, body, segments, res }) => {
   const admin = requireAdmin(db, req, body);

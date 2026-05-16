@@ -51,7 +51,7 @@ export const createLease = async (db, user, body = {}) => {
   const property = db.properties.find((item) => asTokenId(item.tokenId) === tokenId);
 
   if (!isWallet(lessorWallet)) {
-    throw httpError(400, "Link a wallet before creating a lease");
+    throw httpError(400, "Complete NDI login so the platform can issue a wallet before creating a lease");
   }
   if (!isVerifiedWallet(db, lessorWallet)) {
     throw httpError(400, "Lessor wallet must be NDI-linked before leasing shares");

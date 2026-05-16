@@ -20,6 +20,28 @@ export const setVerifiedWallet = (db, wallet, verified = true) => {
   return db.verifiedWallets[normalizedWallet];
 };
 
+export const verifyPlatformWallet = async (db, user, walletAddress, { actor = "PLATFORM_WALLET_VERIFIED", metadata = {} } = {}) => {
+  const normalizedWallet = normalizeWallet(walletAddress);
+  if (!isWallet(normalizedWallet)) {
+    throw httpError(400, "A valid wallet address is required for verification");
+  }
+
+  const chainVerification = await setVerifiedWalletOnChain(normalizedWallet, true);
+  user.walletAddress = normalizedWallet;
+  user.walletVerifiedAt = now();
+  setVerifiedWallet(db, normalizedWallet, true);
+  audit(db, user.holderDid, actor, normalizedWallet, {
+    onChainEligible: true,
+    chainTxHash: chainVerification?.txHash || null,
+    ...metadata,
+  });
+
+  return {
+    user,
+    chainVerification,
+  };
+};
+
 export const createWalletChallenge = (db, user, wallet) => {
   const walletAddress = normalizeWallet(wallet);
   if (!isWallet(walletAddress)) {
@@ -30,7 +52,7 @@ export const createWalletChallenge = (db, user, wallet) => {
     challengeId: makeId("CHAL"),
     holderDid: user.holderDid,
     walletAddress,
-    challenge: `Smart Property Platform wallet link\nHolder: ${user.holderDid}\nNonce: ${randomNonce(16)}`,
+    challenge: `Smart Property Platform admin wallet authorization\nHolder: ${user.holderDid}\nNonce: ${randomNonce(16)}`,
     status: "PENDING",
     createdAt: now(),
     expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
@@ -67,19 +89,21 @@ export const verifyWalletChallenge = async (db, user, body = {}) => {
     throw httpError(403, "Wallet signature does not match the selected wallet");
   }
 
-  const chainVerification = await setVerifiedWalletOnChain(walletAddress, true);
+  if (!isAdminWallet(walletAddress)) {
+    challenge.status = "REJECTED";
+    challenge.rejectedAt = now();
+    audit(db, user.holderDid, "ADMIN_WALLET_REJECTED", walletAddress, { challengeId: challenge.challengeId });
+    throw httpError(403, "This wallet is not approved for admin access");
+  }
 
   challenge.status = "VERIFIED";
   challenge.signature = String(body.signature);
   challenge.verifiedAt = now();
-  user.walletAddress = walletAddress;
-  user.role = isAdminWallet(user.walletAddress) ? "admin" : "user";
-  setVerifiedWallet(db, user.walletAddress, true);
-  audit(db, user.holderDid, "WALLET_LINKED", user.walletAddress, {
-    challengeId: challenge.challengeId,
-    onChainEligible: true,
-    chainTxHash: chainVerification?.txHash || null,
-  });
+  user.adminWalletAddress = walletAddress;
+  user.adminWalletVerifiedAt = now();
+  user.role = "admin";
+  setVerifiedWallet(db, walletAddress, true);
+  audit(db, user.holderDid, "ADMIN_WALLET_LINKED", walletAddress, { challengeId: challenge.challengeId });
 
   return user;
 };

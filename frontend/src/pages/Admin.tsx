@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { BadgeCheck, Ban, Building2, ChevronLeft, ChevronRight, FileCheck, Layers3, LogOut, Shield, Sparkles, Wallet } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearSessionUser, getSessionUser } from "@/lib/auth";
@@ -27,7 +27,7 @@ const Admin = () => {
   const [suspendWallet, setSuspendWallet] = useState("");
   const [queueIndex, setQueueIndex] = useState(0);
 
-  const loadAdmin = async () => {
+  const loadAdmin = useCallback(async () => {
     try {
       const [propertyData, queueData, listingData, leaseData, auditData] = await Promise.all([
         apiRequest<{ properties: PropertyRecord[] }>("/api/properties"),
@@ -47,11 +47,11 @@ const Admin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     void loadAdmin();
-  }, []);
+  }, [loadAdmin]);
 
   useEffect(() => {
     setQueueIndex((current) => Math.min(current, Math.max(queue.length - 1, 0)));
@@ -133,7 +133,7 @@ const Admin = () => {
 
   const logout = () => {
     clearSessionUser();
-    navigate("/login");
+    navigate("/admin-login");
   };
 
   return (

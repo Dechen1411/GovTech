@@ -24,15 +24,27 @@ export const startNdiNatsSubscriber = async () => {
     for await (const msg of sub) {
       try {
         const payload = JSON.parse(codec.decode(msg.data));
-        const threadId = payload.pattern || payload.data?.thid;
-        if (!threadId) {
+        const candidates = [
+          payload.data?.thid,
+          payload.data?.threadId,
+          payload.data?.proofRequestThreadId,
+          payload.pattern,
+          msg.subject,
+        ].filter(Boolean);
+        if (!candidates.length) {
           continue;
         }
 
         const db = await readDb();
-        const user = createOrUpdateUserFromNdiPayload(db, threadId, payload);
+        const pending = db.pendingSessions.find((session) => candidates.includes(session.threadId));
+        const threadId = pending?.threadId;
+        if (!threadId) {
+          continue;
+        }
+
+        const user = await createOrUpdateUserFromNdiPayload(db, threadId, payload);
+        await writeDb(db);
         if (user) {
-          await writeDb(db);
           console.log(`Bhutan NDI proof validated for thread ${threadId}`);
         }
       } catch (error) {

@@ -4,7 +4,14 @@ import { requireUser } from "../services/auth.service.mjs";
 import { closeLease, createLease, listLeases } from "../services/lease.service.mjs";
 import { created, ok } from "../utils/http.mjs";
 
-export const list = ({ db, requestUrl, res }) => ok(res, { leases: listLeases(db, requestUrl.searchParams).map((lease) => serializeLease(db, lease)) });
+export const list = ({ db, req, body, requestUrl, res }) => {
+  const user = requireUser(db, req, body);
+  const searchParams = new URLSearchParams(requestUrl.searchParams);
+  if (user.role !== "admin") {
+    searchParams.set("wallet", user.walletAddress);
+  }
+  return ok(res, { leases: listLeases(db, searchParams).map((lease) => serializeLease(db, lease)) });
+};
 
 export const create = async ({ db, req, body, res }) => {
   const user = requireUser(db, req, body);

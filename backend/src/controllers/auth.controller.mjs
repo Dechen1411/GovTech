@@ -2,33 +2,54 @@ import { writeDb } from "../db/store.mjs";
 import { serializeUser } from "../models/user.model.mjs";
 import { audit } from "../services/audit.service.mjs";
 import { createNdiProofRequest, getUserBySession, requireUser } from "../services/auth.service.mjs";
-import { httpError } from "../utils/errors.mjs";
 import { created, ok } from "../utils/http.mjs";
 import { now } from "../utils/values.mjs";
 
 export const startNdi = async ({ db, body, res }) => {
   const role = "user";
-  const proof = await createNdiProofRequest(role);
+  const intent = body?.intent === "admin" || body?.role === "admin" ? "admin" : "user";
+  const proof = await createNdiProofRequest(role, intent);
   const pending = {
     threadId: proof.proofRequestThreadId,
     proofRequestURL: proof.proofRequestURL,
     deepLinkURL: proof.deepLinkURL,
     role,
+    intent,
     status: "PENDING",
     createdAt: now(),
     expiresAt: proof.expiresAt,
   };
   db.pendingSessions.unshift(pending);
-  audit(db, "anonymous", "NDI_PROOF_REQUEST_CREATED", pending.threadId, { role });
+  audit(db, "anonymous", "NDI_PROOF_REQUEST_CREATED", pending.threadId, { role, intent });
   await writeDb(db);
   return created(res, pending);
 };
 
-export const ndiStatus = ({ db, segments, res }) => {
-  const pending = db.pendingSessions.find((session) => session.threadId === segments[4]);
+export const ndiStatus = async ({ db, segments, res }) => {
+  const threadId = segments[4];
+  const pending = db.pendingSessions.find((session) => session.threadId === threadId);
   if (!pending) {
-    throw httpError(404, "Unknown proof request");
+    return ok(res, {
+      threadId,
+      proofRequestURL: "",
+      deepLinkURL: "",
+      role: "user",
+      intent: "user",
+      status: "EXPIRED",
+      expiresAt: now(),
+      error: "NDI login request is no longer active.",
+      user: null,
+    });
   }
+
+  if (pending.status === "PENDING" && new Date(pending.expiresAt).getTime() < Date.now()) {
+    pending.status = "EXPIRED";
+    pending.expiredAt = now();
+    pending.error = "NDI login request is no longer active.";
+    audit(db, "ndi", "NDI_PROOF_EXPIRED", pending.threadId, { intent: pending.intent || "user" });
+    await writeDb(db);
+  }
+
   const user = pending.sessionToken ? getUserBySession(db, pending.sessionToken) : null;
   return ok(res, { ...pending, user: user ? serializeUser(user, db) : null });
 };

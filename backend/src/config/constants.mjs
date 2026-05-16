@@ -34,7 +34,7 @@ const loadLocalEnv = () => {
 
 loadLocalEnv();
 
-export const PORT = Number(process.env.PORT ?? 4000);
+export const PORT = Number(process.env.PORT ?? 4001);
 export const SHARES_PER_PROPERTY = 10_000;
 export const ZERO_WALLET = "0x0000000000000000000000000000000000000000";
 export const MONGODB_URI = process.env.MONGODB_URI || "";
@@ -65,15 +65,30 @@ export const NDI_NATS_URL = process.env.NDI_NATS_URL || "wss://natsdemoclient.bh
 export const NDI_NATS_NKEY_SEED = process.env.NDI_NATS_NKEY_SEED || "";
 export const USE_NDI = Boolean(NDI_CLIENT_ID && NDI_CLIENT_SECRET);
 export const USE_NDI_NATS = Boolean(USE_NDI && NDI_NATS_NKEY_SEED);
+export const PRIVY_API_BASE = (process.env.PRIVY_API_BASE || "https://api.privy.io/v1").replace(/\/+$/g, "");
+export const PRIVY_APP_ID = process.env.PRIVY_APP_ID || "";
+export const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET || "";
+export const USE_PRIVY = Boolean(PRIVY_APP_ID && PRIVY_APP_SECRET);
 
 export const walletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
-const parseWalletList = (value = "") =>
+export const parseCsvList = (value = "") =>
   String(value)
     .split(",")
-    .map((wallet) => wallet.trim().toLowerCase())
-    .filter((wallet) => walletAddressRegex.test(wallet));
+    .map((item) => item.trim())
+    .filter(Boolean);
 
+const parseWalletList = (value = "") => parseCsvList(value).map((wallet) => wallet.toLowerCase()).filter((wallet) => walletAddressRegex.test(wallet));
+const parseHashList = (value = "") =>
+  parseCsvList(value)
+    .map((hash) => hash.toLowerCase().replace(/^0x/, ""))
+    .filter((hash) => /^[a-f0-9]{64}$/.test(hash));
+const parseBoolean = (value = "") => ["1", "true", "yes", "on"].includes(String(value).trim().toLowerCase());
+
+export const MONGODB_FALLBACK_TO_LOCAL = parseBoolean(process.env.MONGODB_FALLBACK_TO_LOCAL || "");
+export const ADMIN_DEMO_MODE = parseBoolean(process.env.ADMIN_DEMO_MODE || "");
 export const ADMIN_WALLET_ADDRESSES = parseWalletList(process.env.ADMIN_WALLET_ADDRESSES || "");
+export const ADMIN_HOLDER_DIDS = parseCsvList(process.env.ADMIN_HOLDER_DIDS || "");
+export const ADMIN_ID_NUMBER_HASHES = parseHashList(process.env.ADMIN_ID_NUMBER_HASHES || "");
 export const roleSet = new Set(["user", "admin"]);
 
 export const seedWallets = {

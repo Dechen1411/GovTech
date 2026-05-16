@@ -17,6 +17,7 @@ export const baseDb = () => {
         holderDid: "did:key:demo-seller",
         idNumberDisplay: "SELLER-001",
         walletAddress: seedWallets.sellerA,
+        walletProvider: "seed",
         role: "user",
         sessionToken: "demo-seller-session",
         ndiProofThreadId: "seed-seller-thread",
