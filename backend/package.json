@@ -1,0 +1,17 @@
+{
+  "name": "smart-property-backend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/server.mjs",
+    "dev:node": "node src/server.mjs",
+    "start": "bun src/server.mjs",
+    "start:node": "node src/server.mjs"
+  },
+  "dependencies": {
+    "ethers": "^6.16.0",
+    "mongodb": "^7.2.0",
+    "nats": "^2.29.3"
+  }
+}
