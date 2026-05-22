@@ -99,18 +99,17 @@ const AdminLogin = () => {
   const approvedUser = proof?.status === "VERIFIED" && proof.user?.role === "admin" ? proof.user : null;
 
   return (
-    <main className="min-h-screen bg-primary text-white">
+    <main className="min-h-screen bg-background text-foreground">
       <section className="container mx-auto flex min-h-screen items-center justify-center px-4 py-10">
         <div className="grid w-full max-w-6xl gap-8 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-primary p-8 text-white shadow-2xl shadow-black/20">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,160,23,0.24),transparent_32%),linear-gradient(135deg,rgba(11,31,58,0.98),rgba(11,31,58,0.90))]" />
-            <div className="relative">
-              <div className="inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-gold">
+          <div className="border border-primary bg-primary p-8 text-white shadow-sm">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-gold">
                 <LockKeyhole size={12} />
                 Restricted Officer Access
               </div>
-              <h1 className="mt-5 font-sans text-4xl font-bold uppercase leading-tight md:text-5xl">
-                Admin NDI login and <span className="text-gold-gradient">officer authorization</span>
+              <h1 className="mt-5 text-4xl font-extrabold leading-tight md:text-5xl">
+                Officer verification for property service administration.
               </h1>
               <p className="mt-4 max-w-lg text-white/80">
                 Administrative actions require Bhutan NDI verification against a backend officer allowlist. No browser wallet signature is needed.
@@ -124,13 +123,13 @@ const AdminLogin = () => {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-border border-t-4 border-t-gold bg-card/95 p-8 text-card-foreground shadow-lg shadow-black/10">
+          <div className="border border-border border-t-4 border-t-gold bg-card/95 p-8 text-card-foreground shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-gold/10 p-3 text-gold">
+              <div className="rounded-sm bg-gold/10 p-3 text-gold">
                 {approvedUser ? <ShieldCheck size={22} /> : <QrCode size={22} />}
               </div>
               <div>
-                <h2 className="font-serif text-2xl font-bold">{approvedUser ? "Officer authorized" : "Officer NDI login"}</h2>
+                <h2 className="text-2xl font-bold">{approvedUser ? "Officer authorized" : "Officer NDI login"}</h2>
                 <p className="text-sm text-muted-foreground">
                   {approvedUser ? "The backend approved this officer session." : "Scan with Bhutan NDI Wallet and approve the login request."}
                 </p>
@@ -138,9 +137,9 @@ const AdminLogin = () => {
             </div>
 
             {!proof && (
-              <div className="mt-8 rounded-2xl border border-border/80 bg-white p-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Secure console access</div>
-                <div className="mt-2 font-serif text-3xl font-bold">Login before admin</div>
+              <div className="mt-8 border border-border/80 bg-white p-5">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Secure console access</div>
+                <div className="mt-2 text-3xl font-bold">Verify before administration</div>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Start by proving identity through Bhutan NDI. The server checks the verified holder against the approved officer allowlist.
                 </p>
@@ -158,15 +157,15 @@ const AdminLogin = () => {
 
             {proof && proof.status === "PENDING" && (
               <div className="mt-8 grid gap-6 md:grid-cols-[240px_1fr]">
-                <div className="rounded-2xl border border-border bg-background p-4">
+                <div className="border border-border bg-background p-4">
                   {qrImage ? (
-                    <img src={qrImage} alt="NDI login QR code" className="mx-auto h-[220px] w-[220px] rounded-md bg-white p-2" />
+                    <img src={qrImage} alt="NDI login QR code" className="mx-auto h-[220px] w-[220px] rounded-sm bg-white p-2" />
                   ) : (
                     <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">Preparing QR...</div>
                   )}
                 </div>
-                <div className="rounded-2xl border border-border/80 bg-white p-5">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-card px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-gold">
+                <div className="border border-border/80 bg-white p-5">
+                  <div className="inline-flex items-center gap-2 rounded-sm border border-gold/25 bg-card px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-gold">
                     <Clock size={12} />
                     Waiting for NDI approval
                   </div>
@@ -184,16 +183,16 @@ const AdminLogin = () => {
             )}
 
             {approvedUser && (
-              <div className="mt-8 rounded-2xl border border-border/80 bg-white p-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Authorized officer session</div>
+              <div className="mt-8 border border-border/80 bg-white p-5">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Authorized officer session</div>
                 <div className="mt-3 break-all text-sm text-muted-foreground">Holder DID: {approvedUser.holderDid}</div>
                 <div className="mt-1 text-sm text-muted-foreground">Platform wallet: {shortWallet(approvedUser.walletAddress)}</div>
               </div>
             )}
 
             {proof?.status === "FAILED" && !isInactiveNdiProof(proof) && (
-              <div className="mt-8 rounded-2xl border border-border/80 bg-white p-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Access not approved</div>
+              <div className="mt-8 border border-border/80 bg-white p-5">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Access not approved</div>
                 <p className="mt-3 text-sm text-muted-foreground">{proof.error || "This NDI identity is not approved for admin console access."}</p>
                 <button
                   type="button"
@@ -209,7 +208,7 @@ const AdminLogin = () => {
               </div>
             )}
 
-            {message && <p className="mt-5 rounded-2xl border border-border bg-secondary px-4 py-3 text-sm text-muted-foreground">{message}</p>}
+            {message && <p className="mt-5 border border-border bg-secondary px-4 py-3 text-sm text-muted-foreground">{message}</p>}
 
             <Link to="/" className="mt-6 inline-flex text-sm font-semibold text-muted-foreground hover:text-gold">
               Return to public site
@@ -232,7 +231,7 @@ const AdminStep = ({
   title: string;
   description: string;
 }) => (
-  <div className="rounded-xl border border-white/15 bg-white/10 p-4 text-white">
+  <div className="rounded-sm border border-white/15 bg-white/10 p-4 text-white">
     <Icon size={18} className="text-gold" />
     <div className="mt-3 font-semibold">{title}</div>
     <div className="mt-1 text-sm text-white/75">{description}</div>

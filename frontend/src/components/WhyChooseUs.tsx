@@ -1,36 +1,40 @@
-import { ShieldCheck, FileCheck, History, SearchCheck } from "lucide-react";
+import { FileLock2, History, Scale, SearchCheck, ShieldCheck } from "lucide-react";
 
-const reasons = [
-  { icon: ShieldCheck, title: "Blockchain Verification", desc: "Blockchain-backed verification confirms legal ownership before a listing goes live." },
-  { icon: History, title: "On-Chain History", desc: "Track timeline events and past transfers for each property in one clear, tamper-resistant view." },
-  { icon: FileCheck, title: "Document Hash Validation", desc: "Critical property files are hash-verified and matched to ledger records to reduce fraud risks." },
-  { icon: SearchCheck, title: "Agent-Buyer Clarity", desc: "Buyers and agents use the same transparent data to move deals faster and safer." },
+const standards = [
+  { icon: ShieldCheck, title: "Identity assurance", desc: "Access begins with NDI verification and signed session records." },
+  { icon: FileLock2, title: "Document protection", desc: "Uploaded documents are encrypted before storage and represented by hashes." },
+  { icon: History, title: "Traceable registry events", desc: "Minting, transfers, leases, and closures are linked to auditable transaction references." },
+  { icon: Scale, title: "Officer accountability", desc: "Review decisions and administrative actions are captured in the audit log." },
+  { icon: SearchCheck, title: "Public transparency", desc: "Approved listings show status, share availability, seller wallet, and proof references." },
 ];
 
 const WhyChooseUs = () => {
   return (
-    <section id="why-us" className="section-padding">
+    <section id="security" className="section-padding bg-white">
       <div className="container mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-gold text-sm font-semibold tracking-widest uppercase">Our Promise</span>
-          <h2 className="font-serif text-3xl md:text-5xl font-bold mt-3">
-            Why Choose <span className="text-gold-gradient">Blockchain Verification</span>
+        <div className="mb-12 max-w-3xl">
+          <span className="text-sm font-bold uppercase tracking-widest text-[#7a1f2f]">Security and compliance</span>
+          <h2 className="mt-3 text-3xl font-extrabold text-primary md:text-4xl">
+            Built around public-service trust requirements.
           </h2>
+          <p className="mt-4 leading-7 text-muted-foreground">
+            The portal separates personal identity from public registry proofs while giving citizens and officers a clear trail for property service decisions.
+          </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {reasons.map((r, i) => (
-            <div
-              key={i}
-              className="text-center group p-8 bg-card border border-border rounded-lg hover:gold-border hover:gold-glow transition-all duration-500"
-            >
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/10 mb-6 group-hover:bg-gold/20 transition-colors duration-300">
-                <r.icon className="text-gold" size={28} />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          {standards.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.title} className="border border-border bg-background p-5">
+                <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-sm bg-white text-gold-dark shadow-sm">
+                  <Icon size={22} />
+                </div>
+                <h3 className="font-bold text-primary">{item.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.desc}</p>
               </div>
-              <h3 className="font-serif text-lg font-semibold mb-3">{r.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{r.desc}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

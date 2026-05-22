@@ -1,97 +1,129 @@
-import { ArrowRight, BadgeCheck, FileCheck, Landmark, WalletCards } from "lucide-react";
+import { ArrowRight, BadgeCheck, ClipboardCheck, FileCheck, Landmark, LockKeyhole, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 
-const serviceCards = [
+const primaryActions = [
   {
+    title: "Submit property records",
+    description: "Upload encrypted ownership documents for officer review.",
     icon: FileCheck,
-    title: "Submit property",
-    description: "Encrypted documents enter official review before listing",
   },
   {
-    icon: WalletCards,
-    title: "Buy verified shares",
-    description: "Full and fractional ownership through approved listings",
+    title: "View verified registry",
+    description: "Inspect approved listings, share supply, and ownership history.",
+    icon: ClipboardCheck,
   },
   {
+    title: "Record lease activity",
+    description: "Create tamper-resistant lease and resale records.",
     icon: BadgeCheck,
-    title: "Lease or resell",
-    description: "Manage holdings, resale listings, and lease records",
   },
 ];
 
-const trustSignals = ["Bhutan NDI secured", "ERC-6909 share registry", "Encrypted document proof"];
+const serviceSignals = [
+  { label: "NDI authentication", icon: ShieldCheck },
+  { label: "Encrypted document review", icon: LockKeyhole },
+  { label: "Sepolia registry proof", icon: Landmark },
+];
 
 const HeroSection = () => {
   return (
-    <section id="home" className="relative min-h-[92vh] overflow-hidden bg-primary pt-24">
+    <section id="home" className="relative overflow-hidden bg-background pt-32">
       <div className="absolute inset-0">
         <img
           src={heroBg}
-          alt="Smart Property Platform verified property services in Bhutan"
+          alt="Public digital property services in Bhutan"
           width={1920}
           height={1080}
           className="h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,31,58,0.96)_0%,rgba(11,31,58,0.84)_42%,rgba(11,31,58,0.40)_72%,rgba(11,31,58,0.22)_100%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-primary to-transparent" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(246,248,250,0.98)_0%,rgba(246,248,250,0.94)_43%,rgba(246,248,250,0.78)_70%,rgba(246,248,250,0.70)_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent" />
       </div>
 
-      <div className="relative z-10 container mx-auto flex min-h-[calc(92vh-6rem)] flex-col justify-center px-4 pb-12 pt-10">
-        <div className="max-w-3xl opacity-0 animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
-          <div className="mb-6 inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gold backdrop-blur-sm">
-            <Landmark size={14} />
-            NDI Secured Property Services
-          </div>
+      <div className="relative z-10 container mx-auto px-4 pb-16 pt-10">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.7fr)] lg:items-end">
+          <div className="max-w-4xl">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-sm border border-[#7a1f2f]/20 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#7a1f2f] shadow-sm">
+              <Landmark size={14} />
+              Government property service portal
+            </div>
 
-          <h1 className="max-w-4xl font-sans text-4xl font-bold uppercase leading-[1.05] text-white drop-shadow-lg md:text-5xl lg:text-6xl">
-            Smart Property Platform
-          </h1>
+            <h1 className="max-w-4xl text-4xl font-extrabold leading-[1.05] tracking-normal text-primary md:text-5xl lg:text-6xl">
+              Digital Property Services Portal
+            </h1>
 
-          <p className="mt-6 max-w-2xl text-base leading-7 text-white/90 drop-shadow md:text-lg">
-            Submit property documents, purchase verified ownership shares, and record leases through one secure marketplace backed by Bhutan NDI and blockchain proof.
-          </p>
+            <p className="mt-6 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+              A public service gateway for NDI-verified property submission, officer review, ownership share records, and lease history backed by encrypted documents and blockchain proof.
+            </p>
 
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <a
-              href="#properties"
-              className="inline-flex w-fit items-center gap-2 rounded-sm bg-gold px-6 py-3 text-sm font-bold uppercase tracking-wide text-primary transition-colors hover:bg-gold-light"
-            >
-              Explore services
-              <ArrowRight size={16} />
-            </a>
-            <a
-              href="/login"
-              className="inline-flex w-fit items-center gap-2 rounded-sm border border-white/30 px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:border-gold hover:text-gold"
-            >
-              Sign in with NDI
-            </a>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-2">
-            {trustSignals.map((signal) => (
-              <span
-                key={signal}
-                className="rounded-sm border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white/80 backdrop-blur-sm"
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/login"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#173b4d] sm:w-fit"
               >
-                {signal}
-              </span>
-            ))}
+                Citizen Login with NDI
+                <ArrowRight size={16} />
+              </Link>
+              <Link
+                to="/admin-login"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-sm border border-primary/20 bg-white px-6 py-3 text-sm font-bold uppercase tracking-wide text-primary transition-colors hover:border-[#7a1f2f] hover:text-[#7a1f2f] sm:w-fit"
+              >
+                Officer Portal
+              </Link>
+            </div>
+
+            <div className="mt-6 grid gap-2 sm:grid-cols-3">
+              {serviceSignals.map((signal) => {
+                const Icon = signal.icon;
+                return (
+                  <div key={signal.label} className="flex items-center gap-2 rounded-sm border border-border bg-white/85 px-3 py-3 text-xs font-semibold uppercase tracking-wide text-primary shadow-sm">
+                    <Icon size={15} className="shrink-0 text-gold-dark" />
+                    <span>{signal.label}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
+
+          <aside className="border border-border bg-white/90 p-5 shadow-sm backdrop-blur-sm">
+            <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-[#7a1f2f]">Service Status</p>
+                <h2 className="mt-1 text-xl font-bold text-primary">Available Online</h2>
+              </div>
+              <span className="rounded-sm bg-emerald-700 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Live</span>
+            </div>
+            <dl className="mt-4 grid gap-3 text-sm">
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-muted-foreground">Identity provider</dt>
+                <dd className="font-semibold text-primary">Bhutan NDI</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-muted-foreground">Document storage</dt>
+                <dd className="font-semibold text-primary">Encrypted IPFS</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-muted-foreground">Contract network</dt>
+                <dd className="font-semibold text-primary">Sepolia</dd>
+              </div>
+            </dl>
+          </aside>
         </div>
 
-        <div className="mt-12 grid max-w-5xl gap-4 opacity-0 animate-fade-in-up sm:grid-cols-3" style={{ animationDelay: "0.35s" }}>
-          {serviceCards.map((card) => {
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {primaryActions.map((card) => {
             const Icon = card.icon;
             return (
               <a
                 key={card.title}
-                href="#properties"
-                className="group border-t-4 border-gold bg-white/95 p-5 text-left shadow-xl shadow-primary/20 transition-transform hover:-translate-y-1"
+                href="#registry"
+                className="group border-l-4 border-gold bg-white p-5 text-left shadow-sm transition-colors hover:border-[#7a1f2f]"
               >
-                <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-sm bg-primary text-gold">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-sm bg-primary text-gold">
                   <Icon size={21} />
                 </div>
-                <h2 className="font-sans text-lg font-bold text-primary">{card.title}</h2>
+                <h2 className="text-lg font-bold text-primary">{card.title}</h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{card.description}</p>
               </a>
             );

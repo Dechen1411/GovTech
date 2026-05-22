@@ -1,53 +1,51 @@
-import { Star, Quote } from "lucide-react";
+import { Clock3, FileWarning, Headphones, ShieldCheck } from "lucide-react";
 
-const testimonials = [
+const standards = [
   {
-    name: "Dorji Wangmo",
-    role: "Homeowner",
-    text: "I could review blockchain-verified ownership records and documents before paying the booking amount. That transparency made my decision easy.",
+    icon: Clock3,
+    title: "Clear processing stages",
+    text: "Submission, review, approval, listing, purchase, resale, and lease states are visible to authorized users.",
   },
   {
-    name: "Tshering Penjor",
-    role: "Property Investor",
-    text: "The ownership timeline feature helped me compare assets quickly. It reduced due diligence time for my investment team.",
+    icon: FileWarning,
+    title: "No raw identity data on-chain",
+    text: "Identity proof is verified off-chain while only property, wallet, and document proof references are recorded.",
   },
   {
-    name: "Karma Choden",
-    role: "First-time Buyer",
-    text: "As a first-time buyer, I trusted the platform because every listing showed document verification status and clear on-chain history.",
+    icon: Headphones,
+    title: "Help desk escalation",
+    text: "Citizens and officers can route service issues to the property desk for manual review or dispute handling.",
   },
 ];
 
 const TestimonialsSection = () => {
   return (
-    <section id="testimonials" className="section-padding bg-card/50">
+    <section id="service-standards" className="section-padding bg-background">
       <div className="container mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-gold text-sm font-semibold tracking-widest uppercase">Testimonials</span>
-          <h2 className="font-serif text-3xl md:text-5xl font-bold mt-3">
-            Trusted by <span className="text-gold-gradient">Buyers & Agents</span>
-          </h2>
+        <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <span className="text-sm font-bold uppercase tracking-widest text-[#7a1f2f]">Service standards</span>
+            <h2 className="mt-3 text-3xl font-extrabold text-primary md:text-4xl">
+              Public service controls instead of marketing claims.
+            </h2>
+          </div>
+          <div className="flex w-fit items-center gap-2 rounded-sm border border-emerald-700/20 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+            <ShieldCheck size={18} />
+            Backend service online
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.map((t, i) => (
-            <div
-              key={i}
-              className="bg-card border border-border p-8 rounded-lg hover:gold-border hover:gold-glow transition-all duration-500 relative"
-            >
-              <Quote className="text-gold/20 absolute top-6 right-6" size={40} />
-              <div className="flex gap-1 mb-4">
-                {[...Array(5)].map((_, j) => (
-                  <Star key={j} size={16} className="fill-gold text-gold" />
-                ))}
+        <div className="grid gap-4 md:grid-cols-3">
+          {standards.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.title} className="border border-border bg-white p-6 shadow-sm">
+                <Icon className="mb-5 text-gold-dark" size={30} />
+                <h3 className="text-lg font-bold text-primary">{item.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.text}</p>
               </div>
-              <p className="text-muted-foreground leading-relaxed mb-6 italic">"{t.text}"</p>
-              <div className="border-t border-border pt-4">
-                <div className="font-serif font-semibold">{t.name}</div>
-                <div className="text-gold text-sm">{t.role}</div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

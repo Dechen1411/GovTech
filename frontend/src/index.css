@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,46 +6,46 @@
 
 @layer base {
   :root {
-    --background: 213 42% 95%;
-    --foreground: 216 42% 16%;
+    --background: 210 24% 96%;
+    --foreground: 207 45% 15%;
 
-    --card: 210 40% 98%;
-    --card-foreground: 216 42% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 207 45% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 216 42% 16%;
+    --popover-foreground: 207 45% 15%;
 
-    --primary: 214 68% 14%;
+    --primary: 197 55% 19%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 100%;
-    --secondary-foreground: 216 42% 16%;
+    --secondary-foreground: 207 45% 15%;
 
-    --muted: 213 42% 95%;
-    --muted-foreground: 216 12% 41%;
+    --muted: 210 22% 92%;
+    --muted-foreground: 211 14% 39%;
 
-    --accent: 43 80% 46%;
-    --accent-foreground: 214 68% 14%;
+    --accent: 42 78% 44%;
+    --accent-foreground: 197 55% 19%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 219 25% 88%;
-    --input: 219 25% 88%;
-    --ring: 43 80% 46%;
+    --border: 210 18% 84%;
+    --input: 210 18% 84%;
+    --ring: 42 78% 44%;
 
-    --radius: 0.5rem;
+    --radius: 0.25rem;
 
-    --gold: 43 80% 46%;
-    --gold-light: 43 85% 58%;
-    --gold-dark: 43 82% 35%;
+    --gold: 42 78% 44%;
+    --gold-light: 42 82% 57%;
+    --gold-dark: 42 82% 34%;
 
     --sidebar-background: 213 42% 95%;
-    --sidebar-foreground: 216 42% 16%;
-    --sidebar-primary: 214 68% 14%;
+    --sidebar-foreground: 207 45% 15%;
+    --sidebar-primary: 197 55% 19%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 216 38% 96%;
-    --sidebar-accent-foreground: 216 42% 16%;
+    --sidebar-accent-foreground: 207 45% 15%;
     --sidebar-border: 218 26% 88%;
     --sidebar-ring: 43 80% 46%;
   }
@@ -61,7 +61,8 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Inter', system-ui, sans-serif;
+    letter-spacing: 0;
   }
 
   html {
@@ -84,6 +85,6 @@
   }
 
   .section-padding {
-    @apply py-20 md:py-28 px-4;
+    @apply py-16 md:py-24 px-4;
   }
 }
