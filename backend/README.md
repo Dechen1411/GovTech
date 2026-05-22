@@ -51,7 +51,7 @@ Environment knobs:
 - `CONTRACT_ADMIN_PRIVATE_KEY` - private key of the wallet that deployed the contract. `PRIVATE_KEY` is also supported.
 - `PRIVY_APP_ID`, `PRIVY_APP_SECRET` - Privy REST API credentials used to create a server-side Ethereum EOA after NDI verification
 - `PRIVY_API_BASE` - default `https://api.privy.io/v1`
-- `ADMIN_DEMO_MODE` - set to `true` only for demo NDI/hackathon runs where there is no stable officer holder DID; any successful NDI login from `/admin-login` becomes admin
+- `ADMIN_DEMO_MODE` - set to `true` only for demo NDI/hackathon runs where there is no stable officer holder DID; any successful officer NDI login becomes admin
 - `ADMIN_HOLDER_DIDS` - comma-separated Bhutan NDI holder DID allowlist for officers who can enter the admin dashboard without a browser wallet signature
 - `ADMIN_ID_NUMBER_HASHES` - comma-separated SHA-256 hashes of approved officer ID numbers; use this instead of storing raw ID numbers
 - `ADMIN_WALLET_ADDRESSES` - optional comma-separated platform wallet allowlist; useful if approving an officer by their generated Privy EOA address
