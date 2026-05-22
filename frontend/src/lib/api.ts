@@ -105,6 +105,16 @@ type ApiOptions = RequestInit & {
   token?: string;
 };
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/g, "");
+
+const apiUrl = (path: string) => {
+  if (!API_BASE_URL || /^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  return new URL(path, `${API_BASE_URL}/`).toString();
+};
+
 export const apiRequest = async <T>(path: string, options: ApiOptions = {}): Promise<T> => {
   const headers = new Headers(options.headers);
 
@@ -116,7 +126,7 @@ export const apiRequest = async <T>(path: string, options: ApiOptions = {}): Pro
     headers.set("Authorization", `Bearer ${options.token}`);
   }
 
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     ...options,
     headers,
   });

@@ -30,6 +30,17 @@ Default local URLs:
 - Backend: `http://localhost:4001`
 - Health check: `http://localhost:4001/health`
 
+## Deploy
+
+Render deployment is configured with `render.yaml`.
+
+```txt
+Backend:  govtech-smart-property-api
+Frontend: govtech-smart-property-web
+```
+
+See `docs/deploy-render.md` for the Render Blueprint flow and required environment variables.
+
 ## Required Backend Environment
 
 Create `backend/.env` from `backend/.env.example`.
