@@ -9,7 +9,6 @@ const SRC_DIR = path.resolve(__dirname, "..");
 export const ROOT_DIR = path.resolve(SRC_DIR, "..");
 export const DATA_DIR = path.join(ROOT_DIR, "data");
 export const DOCS_DIR = path.join(DATA_DIR, "documents");
-export const DB_FILE = path.join(DATA_DIR, "db.json");
 
 const loadLocalEnv = () => {
   const envPath = path.join(ROOT_DIR, ".env");
@@ -84,7 +83,6 @@ const parseHashList = (value = "") =>
     .filter((hash) => /^[a-f0-9]{64}$/.test(hash));
 const parseBoolean = (value = "") => ["1", "true", "yes", "on"].includes(String(value).trim().toLowerCase());
 
-export const MONGODB_FALLBACK_TO_LOCAL = parseBoolean(process.env.MONGODB_FALLBACK_TO_LOCAL || "");
 export const ADMIN_DEMO_MODE = parseBoolean(process.env.ADMIN_DEMO_MODE || "");
 export const ADMIN_WALLET_ADDRESSES = parseWalletList(process.env.ADMIN_WALLET_ADDRESSES || "");
 export const ADMIN_HOLDER_DIDS = parseCsvList(process.env.ADMIN_HOLDER_DIDS || "");

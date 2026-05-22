@@ -19,35 +19,19 @@ export type SessionUser = {
   suspended?: boolean;
 };
 
-const SESSION_KEY = "smart-property-session";
+let sessionUser: SessionUser | null = null;
 
 export const getSessionUser = (): SessionUser | null => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const raw = window.localStorage.getItem(SESSION_KEY);
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(raw) as SessionUser;
-  } catch {
-    return null;
-  }
+  return sessionUser;
 };
 
 export const setSessionUser = (user: SessionUser) => {
-  window.localStorage.setItem(
-    SESSION_KEY,
-    JSON.stringify({
-      ...user,
-      wallet: user.wallet || user.walletAddress || "",
-    }),
-  );
+  sessionUser = {
+    ...user,
+    wallet: user.wallet || user.walletAddress || "",
+  };
 };
 
 export const clearSessionUser = () => {
-  window.localStorage.removeItem(SESSION_KEY);
+  sessionUser = null;
 };

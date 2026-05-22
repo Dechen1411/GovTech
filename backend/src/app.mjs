@@ -26,7 +26,7 @@ export const handleApi = async (req, res) => {
       ok: true,
       service: "smart-property-backend",
       runtime: process.versions.bun ? "bun" : "node",
-      storage: USE_MONGODB ? "mongodb" : "local-json",
+      storage: USE_MONGODB ? "mongodb" : "mongodb-missing-config",
       documentStorage: USE_IPFS_DOCUMENT_STORAGE ? (HAS_IPFS_DOCUMENT_CONFIG ? "ipfs" : "ipfs-missing-config") : "local-encrypted",
       chain: USE_CHAIN ? "configured" : "not-configured",
       ndi: USE_NDI ? "configured" : "not-configured",

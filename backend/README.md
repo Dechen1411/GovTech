@@ -15,7 +15,7 @@ The server listens on `http://localhost:4001`.
 Data storage:
 
 - With `MONGODB_URI` set, the backend stores data in MongoDB collections.
-- Without `MONGODB_URI`, it falls back to local demo storage at `backend/data/db.json`.
+- Without `MONGODB_URI`, the backend refuses to start app-state reads/writes. Local JSON app-state storage is disabled.
 - Uploaded property documents are encrypted before storage. With `DOCUMENT_STORAGE_DRIVER=ipfs` and `PINATA_JWT` set, encrypted files are pinned to IPFS through Pinata; otherwise they are saved locally at `backend/data/documents`.
 
 ## MVC layout
@@ -28,7 +28,7 @@ src/
   controllers/            # request/response handlers
   services/               # business logic: NDI, wallet, ERC-6909, documents, admin
   models/                 # serializers and local data access helpers
-  db/                     # local JSON store and seed data
+  db/                     # MongoDB state access and seed data
   config/                 # constants and runtime paths
   utils/                  # HTTP, errors, value normalization
 ```
@@ -39,7 +39,6 @@ Environment knobs:
 - `MONGODB_URI` - MongoDB Atlas/local connection string. Encode special password characters, for example `@` becomes `%40`.
 - `MONGODB_DB_NAME` - database name, default `smart_property_platform`
 - `MONGODB_TLS_ALLOW_INVALID_HOSTNAMES` - demo-only workaround for Bun/Atlas hostname certificate errors; keep `false` unless local MongoDB TLS fails
-- `MONGODB_FALLBACK_TO_LOCAL` - demo-only fallback to `backend/data/db.json` when Atlas is unreachable; keep `false` for production
 - `DOCUMENT_ENCRYPTION_KEY` - passphrase used to derive the AES-256-GCM key for uploaded documents
 - `DOCUMENT_STORAGE_DRIVER` - `ipfs` for IPFS document storage, otherwise local encrypted files
 - `PINATA_JWT` - full Pinata JWT used by the backend to pin encrypted document JSON. Copy the JWT value, not only the short API key. Never expose it in React.
