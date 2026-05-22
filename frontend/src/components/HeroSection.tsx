@@ -1,5 +1,4 @@
 import { ArrowRight, BadgeCheck, ClipboardCheck, FileCheck, Landmark, LockKeyhole, ShieldCheck } from "lucide-react";
-import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const primaryActions = [
@@ -26,7 +25,11 @@ const serviceSignals = [
   { label: "Sepolia registry proof", icon: Landmark },
 ];
 
-const HeroSection = () => {
+type HeroSectionProps = {
+  onLoginClick: (mode: "user" | "admin") => void;
+};
+
+const HeroSection = ({ onLoginClick }: HeroSectionProps) => {
   return (
     <section id="home" className="relative overflow-hidden bg-background pt-32">
       <div className="absolute inset-0">
@@ -58,19 +61,21 @@ const HeroSection = () => {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/login"
+              <button
+                type="button"
+                onClick={() => onLoginClick("user")}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#173b4d] sm:w-fit"
               >
                 Citizen Login with NDI
                 <ArrowRight size={16} />
-              </Link>
-              <Link
-                to="/admin-login"
+              </button>
+              <button
+                type="button"
+                onClick={() => onLoginClick("admin")}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-sm border border-primary/20 bg-white px-6 py-3 text-sm font-bold uppercase tracking-wide text-primary transition-colors hover:border-[#7a1f2f] hover:text-[#7a1f2f] sm:w-fit"
               >
                 Officer Portal
-              </Link>
+              </button>
             </div>
 
             <div className="mt-6 grid gap-2 sm:grid-cols-3">

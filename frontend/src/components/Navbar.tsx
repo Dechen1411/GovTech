@@ -1,5 +1,4 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
 import { Building2, Landmark, Menu, Search, ShieldCheck, X } from "lucide-react";
 
 const navLinks = [
@@ -10,7 +9,11 @@ const navLinks = [
   { label: "Help Desk", href: "#contact" },
 ];
 
-const Navbar = () => {
+type NavbarProps = {
+  onLoginClick: (mode: "user" | "admin") => void;
+};
+
+const Navbar = ({ onLoginClick }: NavbarProps) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,18 +87,20 @@ const Navbar = () => {
                 className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/60"
               />
             </form>
-            <Link
-              to="/login"
+            <button
+              type="button"
+              onClick={() => onLoginClick("user")}
               className="rounded-sm bg-gold px-4 py-2 text-xs font-bold uppercase tracking-wide text-primary transition-colors duration-300 hover:bg-gold-light"
             >
               Citizen Login
-            </Link>
-            <Link
-              to="/admin-login"
+            </button>
+            <button
+              type="button"
+              onClick={() => onLoginClick("admin")}
               className="rounded-sm border border-white/25 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition-colors duration-300 hover:border-gold hover:text-gold"
             >
               Officer Portal
-            </Link>
+            </button>
           </div>
 
           <button
@@ -135,20 +140,26 @@ const Navbar = () => {
                   {link.label}
                 </a>
               ))}
-              <Link
-                to="/login"
-                onClick={() => setMobileOpen(false)}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  onLoginClick("user");
+                }}
                 className="rounded-sm bg-gold px-5 py-3 text-center text-sm font-bold uppercase tracking-wide text-primary"
               >
                 Citizen Login
-              </Link>
-              <Link
-                to="/admin-login"
-                onClick={() => setMobileOpen(false)}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  onLoginClick("admin");
+                }}
                 className="rounded-sm border border-white/25 px-5 py-3 text-center text-sm font-semibold uppercase tracking-wide text-white"
               >
                 Officer Portal
-              </Link>
+              </button>
             </div>
           </div>
         )}
