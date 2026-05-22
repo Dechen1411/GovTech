@@ -6,7 +6,7 @@ Government-style property marketplace for Bhutan NDI verified users. The app sup
 
 ```txt
 backend/    Bun API, MongoDB storage, NDI events, Privy wallets, IPFS upload, chain orchestration
-contracts/  SmartProperty6909 Solidity contract
+contracts/  Hardhat workspace for the SmartProperty6909 Solidity contract
 frontend/   React/Vite user interface
 ```
 
@@ -59,6 +59,8 @@ Never commit real `.env` files, private keys, JWTs, MongoDB passwords, or NDI cr
 npm --prefix frontend run build
 npm --prefix frontend run lint
 npm --prefix frontend run test
+npm run build:contracts
+npm run test:contracts
 cd backend
 bun build src/server.mjs --target=bun --outdir .backend-check
 ```

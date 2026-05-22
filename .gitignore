@@ -2,6 +2,13 @@ node_modules/
 dist/
 *.log
 .env
+artifacts/
+cache/
+coverage/
+coverage.json
+typechain-types/
+types/
+ignition/deployments/
 backend/.env
 backend/data/
 frontend/node_modules/

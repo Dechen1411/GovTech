@@ -1,0 +1,8 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "contract": "SmartProperty6909",
+  "address": "0xAc10699Cc1198516c79f7670b86F4A235127f86c",
+  "admin": "0xCD02f49D01AcB6F2C1f6D856f3aC204E2ab268E0",
+  "explorerUrl": "https://sepolia.etherscan.io/address/0xAc10699Cc1198516c79f7670b86F4A235127f86c"
+}
