@@ -19,6 +19,7 @@ export const routeApi = (ctx) => {
     return authController.ndiStatus(ctx);
   }
   if (method === "GET" && path === "api/auth/me") return authController.me(ctx);
+  if (method === "POST" && path === "api/auth/logout") return authController.logout(ctx);
 
   if (method === "GET" && path === "api/chain/status") return chainController.status(ctx);
 

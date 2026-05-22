@@ -142,6 +142,18 @@ export const apiRequest = async <T>(path: string, options: ApiOptions = {}): Pro
 
 export const getAuthToken = (sessionUser: SessionUser | null) => sessionUser?.sessionToken || "";
 
+export const logoutSession = async (token = "") => {
+  if (!token) {
+    return;
+  }
+
+  await apiRequest<{ ok: boolean }>("/api/auth/logout", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ sessionToken: token }),
+  });
+};
+
 export const formatNu = (amount: number) => `Nu. ${Math.round(amount).toLocaleString("en-IN")}`;
 
 export const shortWallet = (wallet = "") => (wallet.length > 12 ? `${wallet.slice(0, 6)}...${wallet.slice(-4)}` : wallet);

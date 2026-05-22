@@ -28,6 +28,7 @@ import {
   apiRequest,
   formatNu,
   getAuthToken,
+  logoutSession,
   readFileAsDataUrl,
   shortWallet,
   type LeaseRecord,
@@ -104,11 +105,11 @@ const UserDashboard = () => {
 
   useEffect(() => {
     if (!sessionUser) {
-      navigate("/login");
+      navigate("/", { replace: true });
       return;
     }
     if (sessionUser.role === "admin") {
-      navigate("/admin-dashboard");
+      navigate("/admin-dashboard", { replace: true });
     }
   }, [navigate, sessionUser]);
 
@@ -406,8 +407,9 @@ const UserDashboard = () => {
   }, []);
 
   const logout = () => {
+    void logoutSession(token).catch(() => undefined);
     clearSessionUser();
-    navigate("/login");
+    navigate("/", { replace: true });
   };
 
   return (

@@ -1,7 +1,7 @@
 import { writeDb } from "../db/store.mjs";
 import { serializeUser } from "../models/user.model.mjs";
 import { audit } from "../services/audit.service.mjs";
-import { createNdiProofRequest, getUserBySession, requireUser } from "../services/auth.service.mjs";
+import { createNdiProofRequest, getTokenFromRequest, getUserBySession, requireUser } from "../services/auth.service.mjs";
 import { created, ok } from "../utils/http.mjs";
 import { now } from "../utils/values.mjs";
 
@@ -57,4 +57,36 @@ export const ndiStatus = async ({ db, segments, res }) => {
 export const me = ({ db, req, body, res }) => {
   const user = requireUser(db, req, body);
   return ok(res, { user: serializeUser(user, db) });
+};
+
+export const logout = async ({ db, req, body, res }) => {
+  const token = getTokenFromRequest(req, body);
+  const loggedOutAt = now();
+  let changed = false;
+
+  if (token) {
+    const user = getUserBySession(db, token);
+    if (user) {
+      user.sessionToken = "";
+      user.loggedOutAt = loggedOutAt;
+      audit(db, user.holderDid || user.walletAddress || "anonymous", "SESSION_LOGOUT", user.walletAddress || user.holderDid || "session", {
+        role: user.role || "user",
+      });
+      changed = true;
+    }
+
+    for (const pending of db.pendingSessions ?? []) {
+      if (pending.sessionToken === token) {
+        pending.sessionToken = "";
+        pending.loggedOutAt = loggedOutAt;
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) {
+    await writeDb(db);
+  }
+
+  return ok(res, { ok: true });
 };

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { BadgeCheck, Ban, Building2, ChevronLeft, ChevronRight, FileCheck, Layers3, LogOut, Shield, Sparkles, Wallet } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearSessionUser, getSessionUser } from "@/lib/auth";
-import { apiRequest, formatNu, getAuthToken, shortWallet, type AuditLogEntry, type LeaseRecord, type ListingRecord, type PropertyRecord } from "@/lib/api";
+import { apiRequest, formatNu, getAuthToken, logoutSession, shortWallet, type AuditLogEntry, type LeaseRecord, type ListingRecord, type PropertyRecord } from "@/lib/api";
 import property1 from "@/assets/property1.jpg";
 import property2 from "@/assets/property2.jpg";
 import property3 from "@/assets/property3.jpg";
@@ -132,8 +132,9 @@ const Admin = () => {
   };
 
   const logout = () => {
+    void logoutSession(token).catch(() => undefined);
     clearSessionUser();
-    navigate("/admin-login");
+    navigate("/", { replace: true });
   };
 
   return (

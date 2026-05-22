@@ -9,7 +9,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (!sessionUser || sessionUser.role !== "admin") {
-      navigate("/admin-login");
+      navigate("/", { replace: true });
     }
   }, [navigate, sessionUser]);
 
