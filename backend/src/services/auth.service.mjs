@@ -8,12 +8,33 @@ import { verifyPlatformWallet } from "./wallet.service.mjs";
 let ndiToken = "";
 let ndiTokenExpiresAt = 0;
 
-const pickRevealedValue = (revealedAttrs = {}, name) => {
-  const value = revealedAttrs[name];
+const normalizeAttributeName = (value = "") => String(value).replace(/[\s_-]+/g, "").toLowerCase();
+
+const revealedValue = (value) => {
   if (Array.isArray(value)) {
-    return value[0]?.value || "";
+    return value.map(revealedValue).find(Boolean) || "";
   }
-  return value?.value || "";
+
+  if (value && typeof value === "object") {
+    return value.value || value.raw || "";
+  }
+
+  return value || "";
+};
+
+const pickRevealedValue = (revealedAttrs = {}, name) => {
+  const directValue = revealedValue(revealedAttrs[name]);
+  if (directValue) {
+    return String(directValue).trim();
+  }
+
+  const targetName = normalizeAttributeName(name);
+  const entry = Object.entries(revealedAttrs).find(([key, value]) => {
+    const candidateName = normalizeAttributeName(value?.name || value?.label || key);
+    return candidateName === targetName;
+  });
+
+  return entry ? String(revealedValue(entry[1])).trim() : "";
 };
 
 export const fetchNdiToken = async () => {
@@ -143,6 +164,7 @@ export const createOrUpdateUserFromProof = async (db, pending, body = {}) => {
   const requestedRole = "user";
   const holderDid = body.holderDid || `did:key:demo-${requestedRole}-${pending.threadId.slice(0, 8)}`;
   const idNumberDisplay = body.idNumberDisplay || "NDI-VERIFIED";
+  const fullName = String(body.fullName || body.name || "").trim();
   const existing = db.users.find((user) => user.holderDid === holderDid);
   const sessionToken = randomSessionToken();
 
@@ -154,7 +176,7 @@ export const createOrUpdateUserFromProof = async (db, pending, body = {}) => {
   };
 
   user.idNumberDisplay = idNumberDisplay;
-  user.fullName = body.fullName || user.fullName || "";
+  user.fullName = fullName || user.fullName || "";
   user.sessionToken = sessionToken;
   user.ndiProofThreadId = pending.threadId;
   user.ndiVerifiedAt = now();

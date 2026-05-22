@@ -4,6 +4,7 @@ export type SessionUser = {
   role: UserRole;
   holderDid: string;
   idNumberDisplay: string;
+  fullName?: string;
   sessionToken: string;
   walletAddress: string;
   wallet: string;
