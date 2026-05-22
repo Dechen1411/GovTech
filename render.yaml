@@ -19,7 +19,7 @@ services:
       - key: MONGODB_DB_NAME
         value: smart_property_platform
       - key: MONGODB_TLS_ALLOW_INVALID_HOSTNAMES
-        value: "false"
+        value: "true"
       - key: DOCUMENT_ENCRYPTION_KEY
         sync: false
       - key: DOCUMENT_STORAGE_DRIVER
