@@ -6,7 +6,7 @@ This repo includes a Render Blueprint at `render.yaml`.
 
 1. Push `main` to GitHub.
 2. In Render, choose **New > Blueprint**.
-3. Connect the `Dechen1411/GovTech` repository.
+3. Connect the `Dechen1411/smart-property` repository.
 4. Keep the default Blueprint file path: `render.yaml`.
 5. Fill every prompted `sync: false` environment variable.
 6. Create the Blueprint.
