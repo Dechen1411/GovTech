@@ -1,5 +1,25 @@
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
-import { BadgeCheck, CalendarDays, ChevronRight, FileUp, ImageIcon, Layers3, LogOut, MapPin, RotateCcw, ShoppingCart, SlidersHorizontal, Wallet } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import {
+  BadgeCheck,
+  Building2,
+  CalendarDays,
+  ChevronRight,
+  ClipboardCheck,
+  FileText,
+  FileUp,
+  Home,
+  ImageIcon,
+  Landmark,
+  Layers3,
+  LogOut,
+  MapPin,
+  RotateCcw,
+  ShieldCheck,
+  ShoppingCart,
+  SlidersHorizontal,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearSessionUser, getSessionUser } from "@/lib/auth";
 import {
@@ -14,7 +34,6 @@ import {
 } from "@/lib/api";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import heroBg from "@/assets/hero-bg.jpg";
 import property1 from "@/assets/property1.jpg";
 import property2 from "@/assets/property2.jpg";
 import property3 from "@/assets/property3.jpg";
@@ -52,6 +71,13 @@ const emptyLeaseForm = {
   depositAmount: "10000",
   notes: "",
 };
+
+const serviceLinks = [
+  { href: "#submit-property", label: "Submit property", icon: FileUp },
+  { href: "#marketplace", label: "Registry listings", icon: Landmark },
+  { href: "#purchase", label: "Purchase shares", icon: ShoppingCart },
+  { href: "#portfolio", label: "Portfolio records", icon: Layers3 },
+];
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -134,6 +160,8 @@ const UserDashboard = () => {
   const resaleShares = Number(resaleForm.sharesForSale || 0);
   const resalePrice = Number(resaleForm.pricePerShare || 0);
   const resaleTotalAsk = resaleShares * resalePrice;
+  const totalSharesOwned = holdings.reduce((total, holding) => total + Number(holding.balance || 0), 0);
+  const activeLeaseCount = leases.filter((lease) => lease.status === "ACTIVE").length;
   const photoPreviewUrl = useMemo(() => (photoFile ? URL.createObjectURL(photoFile) : ""), [photoFile]);
 
   useEffect(() => {
@@ -159,12 +187,12 @@ const UserDashboard = () => {
 
   const stats = useMemo(
     () => [
-      { title: "Available listings", value: String(listings.length), description: "Full, partial, and resale offers" },
-      { title: "Shares owned", value: String(holdings.length), description: "Verified property holdings" },
-      { title: "Active leases", value: String(leases.filter((lease) => lease.status === "ACTIVE").length), description: "Recorded lease agreements" },
-      { title: "Verification status", value: wallet ? "Verified" : "Pending", description: wallet ? "NDI access confirmed" : "Sign in again from login" },
+      { title: "Registry listings", value: String(listings.length), description: "Approved offers available", icon: Landmark },
+      { title: "Shares owned", value: totalSharesOwned.toLocaleString("en-IN"), description: "Across verified holdings", icon: Layers3 },
+      { title: "Active leases", value: String(activeLeaseCount), description: "Lease records in force", icon: CalendarDays },
+      { title: "Identity status", value: wallet ? "Verified" : "Pending", description: wallet ? "NDI session active" : "Sign in required", icon: BadgeCheck },
     ],
-    [holdings.length, leases, listings.length, wallet],
+    [activeLeaseCount, listings.length, totalSharesOwned, wallet],
   );
 
   const buyShares = async (event: FormEvent<HTMLFormElement>) => {
@@ -363,96 +391,166 @@ const UserDashboard = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={heroBg} alt="Luxury property in Thimphu" width={1920} height={1080} className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,31,58,0.96)_0%,rgba(11,31,58,0.84)_45%,rgba(11,31,58,0.45)_100%)]" />
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-primary to-transparent" />
-        </div>
-
-        <div className="relative z-10 border-b border-white/10 bg-primary/95 backdrop-blur-sm">
-          <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-5">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-gold"
-            >
-              <ShoppingCart size={12} />
-              Smart Property Platform
-            </Link>
-            <div className="flex gap-3">
-              <Link to="/" className="rounded-sm border border-white/30 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-white hover:border-gold hover:text-gold">
-                Home
-              </Link>
-              <button onClick={logout} className="rounded-sm bg-gold px-4 py-2 text-sm font-semibold uppercase tracking-widest text-primary hover:bg-gold-light">
-                <LogOut size={16} className="mr-2 inline" />
-                Logout
-              </button>
-            </div>
+    <main className="min-h-screen bg-[#eef2f5] text-foreground">
+      <header className="border-b border-primary/20 bg-primary text-white shadow-sm">
+        <div className="bg-[#7a1f2f]">
+          <div className="container mx-auto flex min-h-9 flex-wrap items-center justify-between gap-3 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-white/90">
+            <span className="inline-flex items-center gap-2">
+              <Landmark size={14} />
+              Royal Government Service Gateway
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <ShieldCheck size={14} />
+              Secure citizen property session
+            </span>
           </div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 py-10 md:py-14">
-          <div className="mx-auto max-w-6xl opacity-0 animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
-            <div className="inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-gold">
-              <BadgeCheck size={12} />
-              NDI Verified Marketplace
-            </div>
-            <h1 className="mt-4 max-w-4xl font-sans text-3xl font-bold uppercase leading-tight text-white md:text-5xl">
-              Buy, list, and resell <span className="text-gold-gradient">property shares</span>
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-white/90 md:text-lg">
-              Each approved property is represented as 10,000 ERC-6909 shares. Purchase a full property or choose the exact fraction you want.
-            </p>
+        <div className="container mx-auto flex flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between">
+          <Link to="/" className="flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-gold text-primary">
+              <Building2 size={22} />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-base font-bold md:text-lg">Digital Property Services Portal</span>
+              <span className="block truncate text-xs font-medium text-white/70">Citizen dashboard</span>
+            </span>
+          </Link>
 
-            <div className="mt-8 grid gap-3 text-left sm:grid-cols-2 lg:grid-cols-4">
-              {stats.map((stat) => (
-                <StatCard key={stat.title} {...stat} />
-              ))}
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 rounded-sm border border-white/25 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:border-gold hover:text-gold"
+            >
+              <Home size={15} />
+              Home
+            </Link>
+            <button
+              type="button"
+              onClick={logout}
+              className="inline-flex items-center gap-2 rounded-sm bg-gold px-4 py-2 text-xs font-bold uppercase tracking-wide text-primary hover:bg-gold-light"
+            >
+              <LogOut size={15} />
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <section className="border-b border-border bg-white">
+        <div className="container mx-auto grid gap-6 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-sm border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+              <BadgeCheck size={14} />
+              NDI verified access
             </div>
+            <h1 className="mt-4 text-3xl font-extrabold leading-tight text-primary md:text-4xl">Citizen property services workspace</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">
+              Submit property records for review, browse approved share listings, manage owned holdings, and record lease agreements from one official service area.
+            </p>
+          </div>
+
+          <div className="border border-border bg-[#f8fafc] p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Citizen profile</div>
+                <div className="mt-1 font-semibold text-primary">{sessionUser?.displayName || "Verified citizen"}</div>
+              </div>
+              <span className="rounded-sm border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">Active</span>
+            </div>
+            <div className="mt-3 grid gap-2 text-sm">
+              <StatusLine icon={Wallet} label="Wallet" value={shortWallet(wallet) || "Not connected"} />
+              <StatusLine icon={FileText} label="Citizen ID" value={sessionUser?.idNumberDisplay || "NDI verified"} />
+              <StatusLine icon={ShieldCheck} label="Service level" value="Blockchain registry enabled" />
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-4">
+            {stats.map((stat) => (
+              <StatCard key={stat.title} {...stat} />
+            ))}
           </div>
         </div>
       </section>
 
-      <section id="marketplace" className="border-y border-border/80 bg-background py-10 md:py-12">
-        <div className="container mx-auto grid gap-6 px-4 xl:grid-cols-[0.95fr_1.05fr] xl:items-start">
-          <div id="submit-property" className="rounded-xl border border-border border-t-4 border-t-gold bg-card p-5 shadow-sm md:p-6">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Actions</span>
-                <h2 className="mt-1 font-serif text-2xl font-bold">Property service panel</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Submit documents, relist owned shares, or record an on-chain lease from one workspace.</p>
-              </div>
-              <div className="rounded-sm border border-primary/10 bg-background px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {shortWallet(wallet)}
-              </div>
-            </div>
+      <section className="border-b border-border bg-[#f8fafc]">
+        <div className="container mx-auto flex flex-wrap gap-2 px-4 py-3">
+          {serviceLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="inline-flex items-center gap-2 rounded-sm border border-border bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-primary shadow-sm hover:border-gold/60"
+            >
+              <link.icon size={14} className="text-gold" />
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </section>
 
-            <Tabs defaultValue="submit" className="mt-5">
-              <TabsList className="grid h-auto w-full grid-cols-3 rounded-md bg-background p-1">
-                <TabsTrigger value="submit" className="rounded-sm text-xs font-semibold uppercase tracking-wider data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+      <section className="container mx-auto grid gap-6 px-4 py-8 xl:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
+          <div className="border border-border bg-white p-4 shadow-sm">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Service menu</div>
+            <nav className="mt-3 grid gap-2">
+              {serviceLinks.map((link) => (
+                <a key={link.href} href={link.href} className="flex items-center gap-3 border border-border bg-[#f8fafc] px-3 py-3 text-sm font-semibold text-primary hover:border-gold/60">
+                  <link.icon size={16} className="text-gold" />
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          </div>
+
+          <div className="border border-border bg-white p-4 shadow-sm">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Current service state</div>
+            <div className="mt-3 space-y-3 text-sm">
+              <StatusLine icon={ShieldCheck} label="Identity" value={wallet ? "NDI verified" : "Pending"} />
+              <StatusLine icon={Landmark} label="Registry" value={loading ? "Syncing" : "Available"} />
+              <StatusLine icon={ClipboardCheck} label="Documents" value="Encrypted review flow" />
+            </div>
+          </div>
+        </aside>
+
+        <div className="space-y-6">
+          {message && (
+            <div aria-live="polite" className="border border-gold/30 bg-gold/10 px-4 py-3 text-sm font-medium text-primary">
+              {message}
+            </div>
+          )}
+
+          <section id="submit-property" className="border border-border bg-white shadow-sm">
+            <SectionHeader
+              icon={ClipboardCheck}
+              kicker="Citizen services"
+              title="Property service requests"
+              description="Submit records for officer review, place owned shares on resale, or register lease usage rights."
+            />
+
+            <Tabs defaultValue="submit" className="border-t border-border p-4 md:p-5">
+              <TabsList className="grid h-auto w-full grid-cols-3 rounded-sm border border-border bg-[#eef2f5] p-1">
+                <TabsTrigger value="submit" className="gap-2 rounded-sm text-xs font-semibold uppercase tracking-wide data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <FileUp size={14} />
                   Submit
                 </TabsTrigger>
-                <TabsTrigger value="resale" className="rounded-sm text-xs font-semibold uppercase tracking-wider data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <TabsTrigger value="resale" className="gap-2 rounded-sm text-xs font-semibold uppercase tracking-wide data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <RotateCcw size={14} />
                   Resale
                 </TabsTrigger>
-                <TabsTrigger value="lease" className="rounded-sm text-xs font-semibold uppercase tracking-wider data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <TabsTrigger value="lease" className="gap-2 rounded-sm text-xs font-semibold uppercase tracking-wide data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <CalendarDays size={14} />
                   Lease
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="submit" className="mt-5">
-                <div className="mb-5 flex items-center gap-3">
-                  <div className="rounded-md bg-gold/10 p-3 text-gold">
-                    <FileUp size={22} />
-                  </div>
-                  <div>
-                    <h3 className="font-serif text-xl font-bold">Submit property documents</h3>
-                    <p className="text-sm text-muted-foreground">Legal files are encrypted; photos are pinned publicly for listing cards.</p>
-                  </div>
-                </div>
+                <PanelIntro
+                  icon={FileUp}
+                  title="Submit property documents"
+                  description="Legal bundles are encrypted before storage. Photos are used for registry listing records after approval."
+                />
 
-                <form onSubmit={submitDocument} className="grid gap-4">
+                <form onSubmit={submitDocument} className="mt-5 grid gap-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field required label="Property title" value={documentForm.title} placeholder="e.g. Norzin Lam Commercial Unit" onChange={(value) => setDocumentForm((current) => ({ ...current, title: value }))} />
                     <Field required label="Dzongkhag / locality" value={documentForm.location} placeholder="e.g. Thimphu, Bhutan" onChange={(value) => setDocumentForm((current) => ({ ...current, location: value }))} />
@@ -468,7 +566,7 @@ const UserDashboard = () => {
                       <select
                         value={documentForm.propertyType}
                         onChange={(event) => setDocumentForm((current) => ({ ...current, propertyType: event.target.value }))}
-                      className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-gold/60"
+                        className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-gold/60"
                       >
                         {propertyTypeOptions.map((type) => (
                           <option key={type} value={type}>
@@ -477,23 +575,25 @@ const UserDashboard = () => {
                         ))}
                       </select>
                     </label>
-                    <Field required label="Price per share (Nu.)" type="number" min={1} step={1} value={documentForm.pricePerShare} helper="Used to price the initial listing after approval." onChange={(value) => setDocumentForm((current) => ({ ...current, pricePerShare: value }))} />
+                    <Field required label="Price per share (Nu.)" type="number" min={1} step={1} value={documentForm.pricePerShare} helper="Used for the initial listing after approval." onChange={(value) => setDocumentForm((current) => ({ ...current, pricePerShare: value }))} />
                     <Field required label="Initial shares to list" type="number" min={0} max={MAX_PROPERTY_SHARES} step={1} value={documentForm.requestedListingShares} helper="Use 0 to keep all shares private after approval." onChange={(value) => setDocumentForm((current) => ({ ...current, requestedListingShares: value }))} />
                     <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-muted-foreground">Legal document bundle <span className="text-gold">*</span></span>
+                      <span className="mb-2 block text-sm font-medium text-muted-foreground">
+                        Legal document bundle <span className="text-[#7a1f2f]">*</span>
+                      </span>
                       <input
                         type="file"
                         accept=".pdf,.zip,.doc,.docx,.png,.jpg,.jpeg"
                         required
                         onChange={onDocumentFile}
-                        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none file:mr-3 file:rounded-sm file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-widest file:text-primary-foreground"
+                        className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm text-foreground outline-none file:mr-3 file:rounded-sm file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-primary-foreground"
                       />
                       <span className="mt-2 block text-xs leading-5 text-muted-foreground">PDF, ZIP, Word, or scanned image files are encrypted before storage.</span>
                     </label>
                     <label className="block sm:col-span-2">
                       <span className="mb-2 block text-sm font-medium text-muted-foreground">Property photo</span>
-                      <div className="grid gap-4 rounded-md border border-border bg-background p-3 sm:grid-cols-[160px_1fr]">
-                        <div className="flex h-28 items-center justify-center overflow-hidden rounded-md border border-border bg-secondary">
+                      <div className="grid gap-4 border border-border bg-[#f8fafc] p-3 sm:grid-cols-[160px_1fr]">
+                        <div className="flex h-28 items-center justify-center overflow-hidden rounded-sm border border-border bg-white">
                           {photoPreviewUrl ? (
                             <img src={photoPreviewUrl} alt="Selected property" className="h-full w-full object-cover" />
                           ) : (
@@ -505,7 +605,7 @@ const UserDashboard = () => {
                             type="file"
                             accept="image/*"
                             onChange={onPhotoFile}
-                            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none file:mr-3 file:rounded-sm file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-widest file:text-primary-foreground"
+                            className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm text-foreground outline-none file:mr-3 file:rounded-sm file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-primary-foreground"
                           />
                           <p className="text-sm text-muted-foreground">
                             {photoFile ? photoFile.name : "This image appears on marketplace and official review cards after submission."}
@@ -520,10 +620,10 @@ const UserDashboard = () => {
                       value={documentForm.description}
                       placeholder="Briefly describe the property, parcel, building condition, and ownership context."
                       onChange={(event) => setDocumentForm((current) => ({ ...current, description: event.target.value }))}
-                      className="min-h-24 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-gold/60"
+                      className="min-h-24 w-full rounded-sm border border-border bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-gold/60"
                     />
                   </label>
-                  <div className="rounded-md border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
+                  <div className="border border-border bg-[#f8fafc] px-4 py-3 text-sm text-muted-foreground">
                     Initial listing estimate: <span className="font-semibold text-primary">{requestedListingShares.toLocaleString("en-IN")}</span> shares at{" "}
                     <span className="font-semibold text-primary">{formatNu(requestedPricePerShare || 0)}</span> each
                     {requestedTotalAsk > 0 ? (
@@ -538,32 +638,25 @@ const UserDashboard = () => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="inline-flex w-fit items-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-semibold uppercase tracking-widest text-primary-foreground hover:bg-gold-light disabled:opacity-60"
+                    className="inline-flex w-fit items-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-semibold uppercase tracking-wide text-primary-foreground hover:bg-gold-light disabled:opacity-60"
                   >
+                    <FileUp size={16} />
                     Submit for review
                   </button>
                 </form>
               </TabsContent>
 
               <TabsContent value="resale" className="mt-5">
-                <div className="mb-5 flex items-center gap-3">
-                  <div className="rounded-md bg-gold/10 p-3 text-gold">
-                    <RotateCcw size={22} />
-                  </div>
-                  <div>
-                    <h3 className="font-serif text-xl font-bold">Create resale listing</h3>
-                    <p className="text-sm text-muted-foreground">Any shareholder can relist all or part of their balance.</p>
-                  </div>
-                </div>
+                <PanelIntro icon={RotateCcw} title="Create resale listing" description="Relist all or part of a verified holding for citizen marketplace purchase." />
 
-                <form onSubmit={createResaleListing} className="grid gap-4">
+                <form onSubmit={createResaleListing} className="mt-5 grid gap-4">
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-muted-foreground">Property holding</span>
                     <select
                       value={resaleForm.tokenId}
                       required
                       onChange={(event) => setResaleForm((current) => ({ ...current, tokenId: event.target.value }))}
-                      className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-gold/60"
+                      className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-gold/60"
                     >
                       {!holdings.length && <option value="">No holdings available</option>}
                       {holdings.map((holding) => (
@@ -580,38 +673,31 @@ const UserDashboard = () => {
                     <Field required label="Shares to list" type="number" min={1} max={selectedResaleHolding?.balance || MAX_PROPERTY_SHARES} step={1} value={resaleForm.sharesForSale} onChange={(value) => setResaleForm((current) => ({ ...current, sharesForSale: value }))} />
                     <Field required label="Ask price per share (Nu.)" type="number" min={1} step={1} value={resaleForm.pricePerShare} onChange={(value) => setResaleForm((current) => ({ ...current, pricePerShare: value }))} />
                   </div>
-                  <div className="rounded-md border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
+                  <div className="border border-border bg-[#f8fafc] px-4 py-3 text-sm text-muted-foreground">
                     Listing value: <span className="font-semibold text-primary">{Number.isFinite(resaleTotalAsk) ? formatNu(resaleTotalAsk) : "Nu. 0"}</span>
                   </div>
                   <button
                     type="submit"
                     disabled={submitting || holdings.length === 0}
-                    className="inline-flex w-fit items-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-semibold uppercase tracking-widest text-primary-foreground hover:bg-gold-light disabled:opacity-60"
+                    className="inline-flex w-fit items-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-semibold uppercase tracking-wide text-primary-foreground hover:bg-gold-light disabled:opacity-60"
                   >
+                    <RotateCcw size={16} />
                     Create listing
                   </button>
                 </form>
               </TabsContent>
 
               <TabsContent value="lease" className="mt-5">
-                <div className="mb-5 flex items-center gap-3">
-                  <div className="rounded-md bg-gold/10 p-3 text-gold">
-                    <CalendarDays size={22} />
-                  </div>
-                  <div>
-                    <h3 className="font-serif text-xl font-bold">Create lease agreement</h3>
-                    <p className="text-sm text-muted-foreground">Lease usage rights without transferring property share ownership.</p>
-                  </div>
-                </div>
+                <PanelIntro icon={CalendarDays} title="Create lease agreement" description="Record usage rights while retaining ownership of the underlying property shares." />
 
-                <form onSubmit={createLeaseAgreement} className="grid gap-4">
+                <form onSubmit={createLeaseAgreement} className="mt-5 grid gap-4">
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-muted-foreground">Property holding</span>
                     <select
                       value={leaseForm.tokenId}
                       required
                       onChange={(event) => setLeaseForm((current) => ({ ...current, tokenId: event.target.value }))}
-                      className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-gold/60"
+                      className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-gold/60"
                     >
                       {!holdings.length && <option value="">No holdings available</option>}
                       {holdings.map((holding) => (
@@ -638,261 +724,299 @@ const UserDashboard = () => {
                       value={leaseForm.notes}
                       placeholder="Record key lease terms, permitted use, or reference numbers. The notes are hashed into the lease terms proof."
                       onChange={(event) => setLeaseForm((current) => ({ ...current, notes: event.target.value }))}
-                      className="min-h-20 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-gold/60"
+                      className="min-h-20 w-full rounded-sm border border-border bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-gold/60"
                     />
                   </label>
                   <button
                     type="submit"
                     disabled={submitting || holdings.length === 0}
-                    className="inline-flex w-fit items-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-semibold uppercase tracking-widest text-primary-foreground hover:bg-gold-light disabled:opacity-60"
+                    className="inline-flex w-fit items-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-semibold uppercase tracking-wide text-primary-foreground hover:bg-gold-light disabled:opacity-60"
                   >
+                    <CalendarDays size={16} />
                     Record lease on-chain
                   </button>
                 </form>
               </TabsContent>
             </Tabs>
-          </div>
+          </section>
 
-          <div className="grid gap-6">
-            <div className="rounded-xl border border-border border-t-4 border-t-gold bg-secondary p-5 shadow-sm md:p-6">
-              <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                <div>
-                  <span className="text-sm font-semibold uppercase tracking-widest text-gold">Marketplace</span>
-                  <h2 className="mt-2 font-serif text-3xl font-bold md:text-4xl">
-                    Verified <span className="text-gold-gradient">Share Listings</span>
-                  </h2>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
-                    Browse one approved listing at a time. Use the arrow to move through full, partial, and resale offers.
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  {loading && <span className="text-sm text-muted-foreground">Loading live listings...</span>}
-                  {listings.length > 0 && (
-                    <>
-                      <span className="rounded-sm border border-border bg-background px-3 py-2 text-xs font-semibold text-muted-foreground">
-                        {selectedListingIndex + 1} / {listings.length}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={showNextListing}
-                        disabled={listings.length <= 1}
-                        title="Show next listing"
-                        aria-label="Show next listing"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-sm bg-primary text-primary-foreground transition-colors hover:bg-gold-light disabled:cursor-not-allowed disabled:opacity-45"
-                      >
-                        <ChevronRight size={20} />
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+            <section id="marketplace" className="border border-border bg-white shadow-sm">
+              <SectionHeader icon={Landmark} kicker="Public registry marketplace" title="Approved property share offers" description="Select an approved listing and review its registry details before purchase.">
+                {listings.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      value={selectedListing?.id || ""}
+                      onChange={(event) => setSelectedListingId(event.target.value)}
+                      className="h-10 max-w-full rounded-sm border border-border bg-white px-3 text-sm text-foreground outline-none focus:border-gold/60"
+                    >
+                      {listings.map((listing, index) => (
+                        <option key={listing.id} value={listing.id}>
+                          {index + 1}. {listing.property?.title || `Token ${listing.tokenId}`}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={showNextListing}
+                      disabled={listings.length <= 1}
+                      title="Show next listing"
+                      aria-label="Show next listing"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-sm bg-primary text-primary-foreground transition-colors hover:bg-gold-light disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                )}
+              </SectionHeader>
 
-              {listings.length === 0 ? (
-                <div className="grid gap-5 rounded-lg border border-dashed border-primary/20 bg-background p-6 md:grid-cols-[1fr_220px] md:items-center">
-                  <div>
-                    <h3 className="font-serif text-2xl font-bold">No active listings yet</h3>
-                    <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                      Approved properties will appear here after admin review and minting. You can still submit a property package below.
+              <div className="border-t border-border p-4 md:p-5">
+                {loading && <p className="text-sm text-muted-foreground">Loading live registry listings...</p>}
+
+                {!loading && listings.length === 0 ? (
+                  <div className="border border-dashed border-primary/25 bg-[#f8fafc] p-5">
+                    <h3 className="text-lg font-bold text-primary">No active listings yet</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      Approved properties will appear here after officer review and minting. You can submit a property package for review above.
                     </p>
+                    <a
+                      href="#submit-property"
+                      className="mt-4 inline-flex items-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold uppercase tracking-wide text-primary-foreground hover:bg-gold-light"
+                    >
+                      <FileUp size={16} />
+                      Submit property
+                    </a>
                   </div>
-                  <a
-                    href="#submit-property"
-                    className="inline-flex items-center justify-center rounded-sm bg-primary px-4 py-3 text-sm font-semibold uppercase tracking-widest text-primary-foreground hover:bg-gold-light"
-                  >
-                    Submit property
-                  </a>
-                </div>
-              ) : selectedListing ? (
-                <div className="overflow-hidden rounded-lg bg-card">
-                  <div className="relative h-64 overflow-hidden bg-background md:h-72">
-                    <img
-                      src={selectedListing.property?.imageUrl || propertyImages[selectedListingIndex % propertyImages.length]}
-                      alt={selectedListing.property?.title || selectedListing.tokenId}
-                      loading="lazy"
-                      width={800}
-                      height={600}
-                      className="h-full w-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.18),transparent_35%),linear-gradient(to_bottom,rgba(15,23,42,0.08),rgba(15,23,42,0.62))]" />
-                    <div className="absolute left-4 top-4 rounded-sm border border-gold/30 bg-background/90 px-3 py-1 text-[11px] font-semibold tracking-wide text-gold">
-                      {selectedListing.listingType}
-                    </div>
-                    <div className="absolute right-4 top-4 rounded-sm bg-primary px-3 py-1 text-xs font-bold tracking-wider text-primary-foreground">
-                      {formatNu(selectedListing.pricePerShare)} / share
-                    </div>
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="font-serif text-2xl font-bold text-white drop-shadow">{selectedListing.property?.title || `Token ${selectedListing.tokenId}`}</div>
-                      <div className="mt-1 flex items-center gap-1 text-sm text-white/90">
-                        <MapPin size={14} className="text-gold" />
-                        {selectedListing.property?.location || "Verified property"}
+                ) : selectedListing ? (
+                  <div className="grid overflow-hidden border border-border bg-white md:grid-cols-[240px_1fr]">
+                    <div className="relative min-h-56 bg-[#eef2f5]">
+                      <img
+                        src={selectedListing.property?.imageUrl || propertyImages[selectedListingIndex % propertyImages.length]}
+                        alt={selectedListing.property?.title || selectedListing.tokenId}
+                        loading="lazy"
+                        width={480}
+                        height={420}
+                        className="h-full min-h-56 w-full object-cover"
+                      />
+                      <div className="absolute left-3 top-3 rounded-sm border border-white/70 bg-white/95 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
+                        {selectedListing.listingType}
                       </div>
-                      {selectedListing.property?.threeWordLocation && <div className="mt-1 text-xs font-semibold text-gold">///{selectedListing.property.threeWordLocation}</div>}
+                    </div>
+
+                    <div className="p-4 md:p-5">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <h3 className="text-xl font-bold text-primary">{selectedListing.property?.title || `Token ${selectedListing.tokenId}`}</h3>
+                          <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                            <MapPin size={15} className="text-gold" />
+                            {selectedListing.property?.location || "Verified property"}
+                          </div>
+                          {selectedListing.property?.threeWordLocation && <div className="mt-1 text-xs font-semibold text-primary">///{selectedListing.property.threeWordLocation}</div>}
+                        </div>
+                        <div className="rounded-sm bg-primary px-3 py-2 text-sm font-bold text-primary-foreground">{formatNu(selectedListing.pricePerShare)} / share</div>
+                      </div>
+
+                      <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                        <Metric label="Shares available" value={selectedListing.sharesForSale.toLocaleString("en-IN")} />
+                        <Metric label="Ownership offered" value={`${selectedListing.ownershipPercentForSale}%`} />
+                        <Metric label="Current holders" value={String(selectedListing.holderCount)} />
+                        <Metric label="Total ask" value={formatNu(selectedListing.totalAsk)} />
+                      </div>
+                      <div className="mt-4 flex items-center gap-2 break-all border-t border-border pt-4 text-xs text-muted-foreground">
+                        <Wallet size={14} className="text-gold" />
+                        Seller wallet {shortWallet(selectedListing.sellerWallet)}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="p-5 md:p-6">
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <Metric label="Shares" value={selectedListing.sharesForSale.toLocaleString("en-IN")} />
-                      <Metric label="Ownership" value={`${selectedListing.ownershipPercentForSale}%`} />
-                      <Metric label="Holders" value={String(selectedListing.holderCount)} />
-                      <Metric label="Total ask" value={formatNu(selectedListing.totalAsk)} />
-                    </div>
-                    <div className="mt-4 flex items-center gap-2 break-all text-xs text-muted-foreground">
-                      <Wallet size={13} className="text-gold" />
-                      Seller {shortWallet(selectedListing.sellerWallet)}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="rounded-xl border border-border border-t-4 border-t-gold bg-card p-5 shadow-sm shadow-primary/10 md:p-6">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="rounded-xl bg-gold/10 p-3 text-gold">
-                  <SlidersHorizontal size={22} />
-                </div>
-                <div>
-                  <h2 className="font-serif text-2xl font-bold">Fractional purchase</h2>
-                  <p className="text-sm text-muted-foreground">Choose an exact quantity for the listing currently shown above.</p>
-                </div>
+                ) : null}
               </div>
+            </section>
 
-              {selectedListing ? (
-                <>
-                  <div className="rounded-lg border border-border/80 bg-secondary p-4">
-                    <div className="text-sm text-muted-foreground">Selected listing</div>
-                    <div className="mt-1 font-serif text-xl font-semibold">{selectedListing.property?.title || selectedListing.tokenId}</div>
-                    <div className="mt-1 text-sm text-muted-foreground">
-                      {selectedListing.sharesForSale.toLocaleString("en-IN")} shares available at {formatNu(selectedListing.pricePerShare)} each
+            <section id="purchase" className="border border-border bg-white shadow-sm">
+              <SectionHeader icon={SlidersHorizontal} kicker="Purchase desk" title="Fractional purchase" description="Choose the share quantity for the currently selected listing." />
+
+              <div className="border-t border-border p-4 md:p-5">
+                {selectedListing ? (
+                  <form onSubmit={buyShares} className="space-y-5">
+                    <div className="border border-border bg-[#f8fafc] p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Selected listing</div>
+                      <div className="mt-1 font-semibold text-primary">{selectedListing.property?.title || selectedListing.tokenId}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">
+                        {selectedListing.sharesForSale.toLocaleString("en-IN")} shares available at {formatNu(selectedListing.pricePerShare)} each
+                      </div>
                     </div>
-                  </div>
 
-                  <form onSubmit={buyShares} className="mt-6 space-y-5">
                     <div>
-                      <div className="mb-3 flex items-center justify-between text-sm">
+                      <div className="mb-3 flex items-center justify-between gap-3 text-sm">
                         <span className="text-muted-foreground">Quantity</span>
-                        <span className="font-semibold text-gold">{qty.toLocaleString("en-IN")} shares</span>
+                        <span className="font-semibold text-primary">{qty.toLocaleString("en-IN")} shares</span>
                       </div>
                       <Slider value={[qty]} min={1} max={Math.max(selectedListing.sharesForSale, 1)} step={1} onValueChange={(value) => setQty(value[0] || 1)} />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <Metric label="Ownership" value={`${((qty / (selectedListing.property?.totalSupply || 10000)) * 100).toFixed(2)}%`} />
-                      <Metric label="Total" value={formatNu(qty * selectedListing.pricePerShare)} />
+                      <Metric label="Total payable" value={formatNu(qty * selectedListing.pricePerShare)} />
                     </div>
 
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-semibold uppercase tracking-widest text-primary-foreground transition-all hover:bg-gold-light disabled:opacity-60"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-semibold uppercase tracking-wide text-primary-foreground transition-colors hover:bg-gold-light disabled:opacity-60"
                     >
                       <ShoppingCart size={16} />
                       {submitting ? "Processing..." : "Buy shares"}
                     </button>
                   </form>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">No active listings available.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-background py-10 md:py-12">
-        <div className="container mx-auto px-4">
-          <div className="rounded-xl border border-border border-t-4 border-t-gold bg-card p-5 shadow-sm md:p-6">
-            <div className="mb-6 flex items-center gap-3">
-              <div className="rounded-md bg-gold/10 p-3 text-gold">
-                <Layers3 size={22} />
-              </div>
-              <div>
-                <h2 className="font-serif text-2xl font-bold">Share portfolio</h2>
-                <p className="text-sm text-muted-foreground">Balances are derived from the ERC-6909 service state.</p>
-              </div>
-            </div>
-
-            <div className="grid gap-4">
-              {holdings.length > 0 ? (
-                holdings.map((holding) => (
-                  <div key={holding.tokenId} className="rounded-lg border border-border/80 bg-secondary p-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <div className="font-serif text-xl font-semibold">{holding.property?.title || `Token ${holding.tokenId}`}</div>
-                        <div className="mt-1 text-sm text-muted-foreground">Token ID {holding.tokenId}</div>
-                      </div>
-                      <div className="rounded-sm border border-gold/30 bg-gold/10 px-3 py-1 text-sm font-semibold text-gold">
-                        {holding.percentage}% ownership
-                      </div>
-                    </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <Metric label="Shares held" value={holding.balance.toLocaleString("en-IN")} />
-                      <Metric label="Est. value" value={formatNu(holding.estimatedValue)} />
-                      <Metric label="Status" value={holding.property?.status || "ACTIVE"} />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="rounded-lg border border-border/80 bg-secondary p-4 text-sm text-muted-foreground">
-                  No shares yet. Purchase from the marketplace to populate your portfolio.
-                </p>
-              )}
-            </div>
-
-            <div className="mt-8 border-t border-border pt-6">
-              <h3 className="font-serif text-xl font-semibold">Lease agreements</h3>
-              <div className="mt-4 grid gap-4">
-                {leases.length > 0 ? (
-                  leases.map((lease) => (
-                    <div key={lease.id} className="rounded-lg border border-border/80 bg-secondary p-4">
-                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div>
-                          <div className="font-serif text-lg font-semibold">{lease.property?.title || `Token ${lease.tokenId}`}</div>
-                          <div className="mt-1 text-sm text-muted-foreground">
-                            {new Date(lease.startDateIso).toLocaleDateString()} - {new Date(lease.endDateIso).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div className="rounded-sm border border-gold/30 bg-gold/10 px-3 py-1 text-sm font-semibold text-gold">{lease.status}</div>
-                      </div>
-                      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                        <Metric label="Shares leased" value={lease.shareAmount.toLocaleString("en-IN")} />
-                        <Metric label="Rent" value={formatNu(lease.rentAmount)} />
-                        <Metric label="Chain lease" value={lease.chainLeaseId || "pending"} />
-                      </div>
-                      <div className="mt-3 break-all text-xs text-muted-foreground">
-                        {shortWallet(lease.lessorWallet)} to {shortWallet(lease.lesseeWallet)}
-                      </div>
-                    </div>
-                  ))
                 ) : (
-                  <p className="rounded-lg border border-border/80 bg-secondary p-4 text-sm text-muted-foreground">No lease agreements for this wallet yet.</p>
+                  <p className="text-sm text-muted-foreground">No active listings available.</p>
                 )}
               </div>
-            </div>
+            </section>
           </div>
-        </div>
 
-        {message && (
-          <div className="container mx-auto mt-8 px-4">
-            <div className="rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-muted-foreground">{message}</div>
-          </div>
-        )}
+          <section id="portfolio" className="border border-border bg-white shadow-sm">
+            <SectionHeader icon={Layers3} kicker="Citizen records" title="Share portfolio and lease register" description="Balances and leases are derived from the platform registry state." />
+
+            <div className="grid gap-6 border-t border-border p-4 md:p-5">
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-bold text-primary">Owned share records</h3>
+                  <span className="rounded-sm border border-border bg-[#f8fafc] px-2 py-1 text-xs font-semibold text-muted-foreground">{holdings.length} records</span>
+                </div>
+
+                <div className="grid gap-3">
+                  {holdings.length > 0 ? (
+                    holdings.map((holding) => (
+                      <div key={holding.tokenId} className="border border-border bg-[#f8fafc] p-4">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <div className="font-semibold text-primary">{holding.property?.title || `Token ${holding.tokenId}`}</div>
+                            <div className="mt-1 text-sm text-muted-foreground">Token ID {holding.tokenId}</div>
+                          </div>
+                          <div className="rounded-sm border border-gold/30 bg-gold/10 px-3 py-1 text-sm font-semibold text-primary">{holding.percentage}% ownership</div>
+                        </div>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                          <Metric label="Shares held" value={holding.balance.toLocaleString("en-IN")} />
+                          <Metric label="Estimated value" value={formatNu(holding.estimatedValue)} />
+                          <Metric label="Status" value={holding.property?.status || "ACTIVE"} />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="border border-border bg-[#f8fafc] p-4 text-sm text-muted-foreground">
+                      No shares yet. Purchase from the marketplace to populate your portfolio.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-5">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-bold text-primary">Lease agreements</h3>
+                  <span className="rounded-sm border border-border bg-[#f8fafc] px-2 py-1 text-xs font-semibold text-muted-foreground">{leases.length} records</span>
+                </div>
+
+                <div className="grid gap-3">
+                  {leases.length > 0 ? (
+                    leases.map((lease) => (
+                      <div key={lease.id} className="border border-border bg-[#f8fafc] p-4">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <div className="font-semibold text-primary">{lease.property?.title || `Token ${lease.tokenId}`}</div>
+                            <div className="mt-1 text-sm text-muted-foreground">
+                              {new Date(lease.startDateIso).toLocaleDateString()} - {new Date(lease.endDateIso).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <div className="rounded-sm border border-gold/30 bg-gold/10 px-3 py-1 text-sm font-semibold text-primary">{lease.status}</div>
+                        </div>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                          <Metric label="Shares leased" value={lease.shareAmount.toLocaleString("en-IN")} />
+                          <Metric label="Rent" value={formatNu(lease.rentAmount)} />
+                          <Metric label="Chain lease" value={lease.chainLeaseId || "pending"} />
+                        </div>
+                        <div className="mt-3 break-all text-xs text-muted-foreground">
+                          {shortWallet(lease.lessorWallet)} to {shortWallet(lease.lesseeWallet)}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="border border-border bg-[#f8fafc] p-4 text-sm text-muted-foreground">No lease agreements for this wallet yet.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
       </section>
     </main>
   );
 };
 
-const StatCard = ({ title, value, description }: { title: string; value: string; description: string }) => (
-  <div className="rounded-lg border border-white/15 border-t-4 border-t-gold bg-white p-4 text-left text-primary shadow-sm shadow-primary/10">
-    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/70">{title}</div>
-    <div className="mt-2 font-serif text-2xl font-bold text-gold">{value}</div>
-    <div className="mt-1 text-sm text-primary/75">{description}</div>
+const SectionHeader = ({
+  icon: Icon,
+  kicker,
+  title,
+  description,
+  children,
+}: {
+  icon: LucideIcon;
+  kicker: string;
+  title: string;
+  description: string;
+  children?: ReactNode;
+}) => (
+  <div className="flex flex-col gap-4 p-4 md:flex-row md:items-start md:justify-between md:p-5">
+    <div className="flex gap-3">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-primary/10 text-primary">
+        <Icon size={20} />
+      </div>
+      <div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-gold">{kicker}</div>
+        <h2 className="mt-1 text-xl font-bold text-primary md:text-2xl">{title}</h2>
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>
+      </div>
+    </div>
+    {children}
+  </div>
+);
+
+const PanelIntro = ({ icon: Icon, title, description }: { icon: LucideIcon; title: string; description: string }) => (
+  <div className="flex items-start gap-3 border border-border bg-[#f8fafc] p-4">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-gold/10 text-gold">
+      <Icon size={20} />
+    </div>
+    <div>
+      <h3 className="font-bold text-primary">{title}</h3>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+    </div>
+  </div>
+);
+
+const StatusLine = ({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) => (
+  <div className="flex items-start gap-2">
+    <Icon size={15} className="mt-0.5 shrink-0 text-gold" />
+    <div className="min-w-0">
+      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="truncate text-sm font-medium text-primary">{value}</div>
+    </div>
+  </div>
+);
+
+const StatCard = ({ title, value, description, icon: Icon }: { title: string; value: string; description: string; icon: LucideIcon }) => (
+  <div className="border border-border bg-white p-4 shadow-sm">
+    <div className="flex items-center justify-between gap-3">
+      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</div>
+      <Icon size={17} className="text-gold" />
+    </div>
+    <div className="mt-3 text-2xl font-bold text-primary">{value}</div>
+    <div className="mt-1 text-sm text-muted-foreground">{description}</div>
   </div>
 );
 
 const Metric = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-md border border-border/80 bg-secondary p-3">
-    <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
+  <div className="border border-border/80 bg-white p-3">
+    <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
     <div className="mt-1 text-sm font-semibold text-foreground">{value}</div>
   </div>
 );
@@ -923,7 +1047,7 @@ const Field = ({
   <label className="block">
     <span className="mb-2 block text-sm font-medium text-muted-foreground">
       {label}
-      {required && <span className="text-gold"> *</span>}
+      {required && <span className="text-[#7a1f2f]"> *</span>}
     </span>
     <input
       type={type}
@@ -934,7 +1058,7 @@ const Field = ({
       max={max}
       step={step}
       onChange={(event) => onChange(event.target.value)}
-      className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-gold/60"
+      className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-gold/60"
     />
     {helper && <span className="mt-2 block text-xs leading-5 text-muted-foreground">{helper}</span>}
   </label>
