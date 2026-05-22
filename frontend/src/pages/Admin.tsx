@@ -18,6 +18,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { clearSessionUser, getSessionUser } from "@/lib/auth";
 import { apiRequest, formatNu, getAuthToken, logoutSession, shortWallet, type AuditLogEntry, type LeaseRecord, type ListingRecord, type PropertyRecord } from "@/lib/api";
+import { loadAdminDashboardData } from "@/lib/dataPreload";
 import property1 from "@/assets/property1.jpg";
 import property2 from "@/assets/property2.jpg";
 import property3 from "@/assets/property3.jpg";
@@ -53,27 +54,21 @@ const Admin = () => {
 
   const officerWallet = sessionUser?.adminWalletAddress || sessionUser?.walletAddress || sessionUser?.wallet || "";
 
-  const loadAdmin = useCallback(async () => {
+  const loadAdmin = useCallback(async (preferPreload = true) => {
     try {
-      const [propertyData, queueData, listingData, leaseData, auditData] = await Promise.all([
-        apiRequest<{ properties: PropertyRecord[] }>("/api/properties"),
-        apiRequest<{ queue: PropertyRecord[] }>("/api/admin/review-queue", { token }),
-        apiRequest<{ listings: ListingRecord[] }>("/api/listings?status=ALL"),
-        apiRequest<{ leases: LeaseRecord[] }>("/api/leases?status=ALL", { token }),
-        apiRequest<{ auditLog: AuditLogEntry[] }>("/api/audit-log", { token }),
-      ]);
-      setProperties(propertyData.properties);
-      setQueue(queueData.queue);
-      setListings(listingData.listings);
-      setLeases(leaseData.leases);
-      setAuditLog(auditData.auditLog);
+      const data = await loadAdminDashboardData(sessionUser, preferPreload);
+      setProperties(data.properties);
+      setQueue(data.queue);
+      setListings(data.listings);
+      setLeases(data.leases);
+      setAuditLog(data.auditLog);
       setMessage("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Backend unavailable. Start the backend server.");
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [sessionUser]);
 
   useEffect(() => {
     void loadAdmin();
@@ -111,7 +106,7 @@ const Admin = () => {
         body: JSON.stringify({ sessionToken: token, notes: "Approved after admin document review" }),
       });
       setMessage(`${property.title} approved. Shares minted and listing created when requested.`);
-      await loadAdmin();
+      await loadAdmin(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Approval failed.");
     } finally {
@@ -130,7 +125,7 @@ const Admin = () => {
         body: JSON.stringify({ sessionToken: token, notes: "Document package requires correction" }),
       });
       setMessage(`${property.title} rejected with correction notes.`);
-      await loadAdmin();
+      await loadAdmin(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Rejection failed.");
     } finally {
@@ -153,7 +148,7 @@ const Admin = () => {
       });
       setMessage(`Wallet ${shortWallet(suspendWallet)} suspended from new listings.`);
       setSuspendWallet("");
-      await loadAdmin();
+      await loadAdmin(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to suspend wallet.");
     }

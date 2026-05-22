@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FileCheck, History, Layers3, MapPin, ShieldCheck, Wallet } from "lucide-react";
-import { apiRequest, formatNu, shortWallet, type ListingRecord } from "@/lib/api";
+import { formatNu, shortWallet, type ListingRecord } from "@/lib/api";
+import { loadPublicRegistry } from "@/lib/dataPreload";
 import property1 from "@/assets/property1.jpg";
 import property2 from "@/assets/property2.jpg";
 import property3 from "@/assets/property3.jpg";
@@ -61,7 +62,7 @@ const PropertiesSection = () => {
 
   const loadProperties = async () => {
     try {
-      const data = await apiRequest<{ listings?: ListingRecord[] }>("/api/listings");
+      const data = await loadPublicRegistry();
 
       if (!data.listings?.length) {
         setProperties([]);

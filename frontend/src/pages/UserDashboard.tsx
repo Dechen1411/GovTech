@@ -35,6 +35,7 @@ import {
   type ListingRecord,
   type PortfolioHolding,
 } from "@/lib/api";
+import { loadUserDashboardData } from "@/lib/dataPreload";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import property1 from "@/assets/property1.jpg";
@@ -113,30 +114,27 @@ const UserDashboard = () => {
     }
   }, [navigate, sessionUser]);
 
-  const loadDashboard = useCallback(async () => {
+  const loadDashboard = useCallback(async (preferPreload = true) => {
     if (!wallet) {
       setLoading(false);
       return;
     }
 
     try {
-      const [listingData, portfolioData] = await Promise.all([
-        apiRequest<{ listings: ListingRecord[] }>("/api/listings"),
-        apiRequest<{ holdings: PortfolioHolding[]; leases: LeaseRecord[] }>(`/api/portfolio/${wallet}`, { token }),
-      ]);
-      setListings(listingData.listings);
-      setHoldings(portfolioData.holdings);
-      setLeases(portfolioData.leases);
-      setSelectedListingId((current) => current || listingData.listings[0]?.id || "");
-      setResaleForm((current) => ({ ...current, tokenId: current.tokenId || portfolioData.holdings[0]?.tokenId || "" }));
-      setLeaseForm((current) => ({ ...current, tokenId: current.tokenId || portfolioData.holdings[0]?.tokenId || "" }));
+      const data = await loadUserDashboardData(sessionUser, preferPreload);
+      setListings(data.listings);
+      setHoldings(data.holdings);
+      setLeases(data.leases);
+      setSelectedListingId((current) => current || data.listings[0]?.id || "");
+      setResaleForm((current) => ({ ...current, tokenId: current.tokenId || data.holdings[0]?.tokenId || "" }));
+      setLeaseForm((current) => ({ ...current, tokenId: current.tokenId || data.holdings[0]?.tokenId || "" }));
       setMessage("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Backend unavailable. Start the backend server.");
     } finally {
       setLoading(false);
     }
-  }, [token, wallet]);
+  }, [sessionUser, wallet]);
 
   useEffect(() => {
     void loadDashboard();
@@ -215,7 +213,7 @@ const UserDashboard = () => {
         body: JSON.stringify({ sessionToken: token, listingId: selectedListing.id, qty }),
       });
       setMessage(`Purchase complete: ${qty.toLocaleString("en-IN")} shares transferred to your wallet.`);
-      await loadDashboard();
+      await loadDashboard(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Purchase failed.");
     } finally {
@@ -311,7 +309,7 @@ const UserDashboard = () => {
       });
       setResaleForm((current) => ({ ...current, sharesForSale: "100" }));
       setMessage("Secondary listing created and approved for marketplace transfer.");
-      await loadDashboard();
+      await loadDashboard(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to create resale listing.");
     } finally {
@@ -373,7 +371,7 @@ const UserDashboard = () => {
       });
       setLeaseForm((current) => ({ ...emptyLeaseForm, tokenId: current.tokenId }));
       setMessage("Lease agreement recorded on-chain and active shares locked.");
-      await loadDashboard();
+      await loadDashboard(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to create lease agreement.");
     } finally {

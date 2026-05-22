@@ -27,9 +27,10 @@ const serviceSignals = [
 
 type HeroSectionProps = {
   onLoginClick: (mode: "user" | "admin") => void;
+  onLoginPreload?: (mode: "user" | "admin") => void;
 };
 
-const HeroSection = ({ onLoginClick }: HeroSectionProps) => {
+const HeroSection = ({ onLoginClick, onLoginPreload }: HeroSectionProps) => {
   return (
     <section id="home" className="relative overflow-hidden bg-background pt-32">
       <div className="absolute inset-0">
@@ -63,6 +64,8 @@ const HeroSection = ({ onLoginClick }: HeroSectionProps) => {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
+                onFocus={() => onLoginPreload?.("user")}
+                onMouseEnter={() => onLoginPreload?.("user")}
                 onClick={() => onLoginClick("user")}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#173b4d] sm:w-fit"
               >
@@ -71,6 +74,8 @@ const HeroSection = ({ onLoginClick }: HeroSectionProps) => {
               </button>
               <button
                 type="button"
+                onFocus={() => onLoginPreload?.("admin")}
+                onMouseEnter={() => onLoginPreload?.("admin")}
                 onClick={() => onLoginClick("admin")}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-sm border border-primary/20 bg-white px-6 py-3 text-sm font-bold uppercase tracking-wide text-primary transition-colors hover:border-[#7a1f2f] hover:text-[#7a1f2f] sm:w-fit"
               >

@@ -11,9 +11,10 @@ const navLinks = [
 
 type NavbarProps = {
   onLoginClick: (mode: "user" | "admin") => void;
+  onLoginPreload?: (mode: "user" | "admin") => void;
 };
 
-const Navbar = ({ onLoginClick }: NavbarProps) => {
+const Navbar = ({ onLoginClick, onLoginPreload }: NavbarProps) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,6 +90,8 @@ const Navbar = ({ onLoginClick }: NavbarProps) => {
             </form>
             <button
               type="button"
+              onFocus={() => onLoginPreload?.("user")}
+              onMouseEnter={() => onLoginPreload?.("user")}
               onClick={() => onLoginClick("user")}
               className="rounded-sm bg-gold px-4 py-2 text-xs font-bold uppercase tracking-wide text-primary transition-colors duration-300 hover:bg-gold-light"
             >
@@ -96,6 +99,8 @@ const Navbar = ({ onLoginClick }: NavbarProps) => {
             </button>
             <button
               type="button"
+              onFocus={() => onLoginPreload?.("admin")}
+              onMouseEnter={() => onLoginPreload?.("admin")}
               onClick={() => onLoginClick("admin")}
               className="rounded-sm border border-white/25 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition-colors duration-300 hover:border-gold hover:text-gold"
             >
@@ -142,6 +147,7 @@ const Navbar = ({ onLoginClick }: NavbarProps) => {
               ))}
               <button
                 type="button"
+                onFocus={() => onLoginPreload?.("user")}
                 onClick={() => {
                   setMobileOpen(false);
                   onLoginClick("user");
@@ -152,6 +158,7 @@ const Navbar = ({ onLoginClick }: NavbarProps) => {
               </button>
               <button
                 type="button"
+                onFocus={() => onLoginPreload?.("admin")}
                 onClick={() => {
                   setMobileOpen(false);
                   onLoginClick("admin");

@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Clock, Link2, QrCode, ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { apiRequest, shortWallet } from "@/lib/api";
 import { clearSessionUser, setSessionUser, type SessionUser, type UserRole } from "@/lib/auth";
+import { preloadPublicRegistry, preloadWorkspaceData } from "@/lib/dataPreload";
 import { isInactiveNdiError, isInactiveNdiProof } from "@/lib/ndi";
+import { preloadPage } from "@/lib/routePreload";
 
 type NDIProof = {
   threadId: string;
@@ -55,6 +57,14 @@ const NdiLoginDialog = ({ mode, onModeChange, onOpenChange, open }: NdiLoginDial
   const copy = modeCopy[mode];
   const isAdmin = mode === "admin";
 
+  const preloadForMode = useCallback((nextMode: NdiLoginMode) => {
+    preloadPage(nextMode === "admin" ? "adminDashboard" : "userDashboard");
+
+    if (nextMode === "user") {
+      preloadPublicRegistry();
+    }
+  }, []);
+
   const qrImage = useMemo(() => {
     if (!proof?.proofRequestURL) {
       return "";
@@ -95,6 +105,8 @@ const NdiLoginDialog = ({ mode, onModeChange, onOpenChange, open }: NdiLoginDial
 
           const userSession = isAdmin ? data.user : { ...data.user, role: "user" as UserRole };
           setSessionUser(userSession);
+          preloadForMode(userSession.role === "admin" ? "admin" : "user");
+          void preloadWorkspaceData(userSession);
           setMessage(copy.verifiedMessage);
           window.setTimeout(() => {
             onOpenChange(false);
@@ -119,13 +131,14 @@ const NdiLoginDialog = ({ mode, onModeChange, onOpenChange, open }: NdiLoginDial
     }, 1800);
 
     return () => window.clearInterval(interval);
-  }, [copy.target, copy.verifiedMessage, isAdmin, navigate, onOpenChange, open, proof]);
+  }, [copy.target, copy.verifiedMessage, isAdmin, navigate, onOpenChange, open, preloadForMode, proof]);
 
   const beginProof = async () => {
     setBusy(true);
     setMessage("");
     setProof(null);
     clearSessionUser();
+    preloadForMode(mode);
 
     try {
       const data = await apiRequest<NDIProof>("/api/auth/ndi/start", {
@@ -144,6 +157,7 @@ const NdiLoginDialog = ({ mode, onModeChange, onOpenChange, open }: NdiLoginDial
   const switchMode = (nextMode: NdiLoginMode) => {
     setProof(null);
     setMessage("");
+    preloadForMode(nextMode);
     onModeChange(nextMode);
   };
 
