@@ -29,7 +29,7 @@ const ContactSection = () => {
             <h3 className="text-lg font-bold text-primary">Service contact</h3>
             <div className="mt-6 space-y-5">
               {[
-                { icon: Phone, label: "Phone", value: "+975 17 42 17 32", href: "tel:+97517421732" },
+                { icon: Phone, label: "Phone", value: "+975 17 12 34 56", href: "tel:+97517123456" },
                 { icon: Mail, label: "Email", value: "property.platform@gov.bt", href: "mailto:property.platform@gov.bt" },
                 { icon: MapPin, label: "Office", value: "Public Service Center, Thimphu, Bhutan" },
                 { icon: Clock, label: "Portal availability", value: "Online services available 24/7" },
