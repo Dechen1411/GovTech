@@ -1,6 +1,8 @@
 # Smart Property Platform
 
-Government-style property marketplace for Bhutan NDI verified users. The app supports property document submission, admin review, ERC-6909 share minting, fractional purchase, resale listings, and on-chain lease records.
+Government-style digital property service pilot for Bhutan NDI verified users. The app demonstrates property document submission, officer review, off-chain audit logs, encrypted document references, and on-chain proof anchoring while keeping personal identity details off-chain.
+
+Marketplace, fractional ownership, resale, and lease features exist as optional modules, but the recommended pilot positioning is property proof and officer review first.
 
 ## Project Structure
 
@@ -40,6 +42,13 @@ Frontend: govtech-smart-property-web
 ```
 
 See `docs/deploy-render.md` for the Render Blueprint flow and required environment variables.
+
+## Pilot Proposal
+
+Use these documents when presenting the project to agencies:
+
+- `docs/pilot-proposal.md` - polished 90-day pilot proposal.
+- `docs/pilot-demo-script.md` - demo narrative and likely Q&A.
 
 ## Required Backend Environment
 
